@@ -15,7 +15,7 @@ from engines.pyglet_engine import PygletEngine
 
 # Set this to whichever engine tier your project uses. See the README for
 # how/why this is a one-time project decision, not a runtime toggle.
-ENGINE: type[BaseEngine] = PygameEngine
+ENGINE: type[BaseEngine] = ModernGLEngine
 
 AUDIO_FILE = "audio/track.wav"
 WINDOW_WIDTH = 1280
