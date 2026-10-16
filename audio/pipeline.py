@@ -18,6 +18,7 @@ class AudioPipeline:
         self.window_size: int = 1024
         self.position: int = 0 
         self.duration: float = 0.0
+        self.num_windows: int = 0
 
     def load(self) -> None:
         """Load the audio file at self.file_path via librosa, at
@@ -36,6 +37,7 @@ class AudioPipeline:
             raise ValueError(f"Failed to load audio file: {self.file_path}")
         
         self.duration = len(self.signal) / self.sample_rate
+        self.num_windows = len(self.signal) // self.window_size
 
     def get_window(self) -> numpy.ndarray:
         if self.signal is None:
@@ -63,4 +65,6 @@ class AudioPipeline:
 
         This return value is passed directly into engine.update().
         """
-        raise NotImplementedError
+        return {
+            "amplitude": self.get_rms(),
+        }
