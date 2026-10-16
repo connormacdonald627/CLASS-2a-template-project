@@ -20,7 +20,6 @@ print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pi
 # current_position: float = random_position
 # for i in range(0, 15):
 #     pipeline.position = int(current_position)
-#     current_position += pipeline.window_size
 #     rms: float = round(pipeline.get_features()["amplitude"], 4)
 #     seconds = round(pipeline.position / pipeline.sample_rate, 2)
 #     data.append((round(seconds, 2), rms))

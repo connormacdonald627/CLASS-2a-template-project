@@ -65,6 +65,10 @@ class AudioPipeline:
 
         This return value is passed directly into engine.update().
         """
-        return {
+        current_data: dict = {
             "amplitude": self.get_rms(),
         }
+
+        self.position += self.window_size
+
+        return current_data
