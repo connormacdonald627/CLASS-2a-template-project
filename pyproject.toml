@@ -10,6 +10,9 @@ dependencies = [
     "pygame",
     "pyglet",
     "moderngl-window",
+    "pooch>=1.9.0",
+    "appnope>=1.0.0",
+    "matplotlib>=3.10.9",
 ]
 
 [tool.uv]

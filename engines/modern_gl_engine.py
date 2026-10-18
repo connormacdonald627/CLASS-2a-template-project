@@ -1,5 +1,6 @@
+import pyglet
 import moderngl_window as mglw
-
+from moderngl_window.conf import settings
 from engines.base_engine import BACKGROUND_COLOR, BaseEngine
 
 _BG = tuple(c / 255 for c in BACKGROUND_COLOR)
@@ -13,10 +14,11 @@ class ModernGLEngine(BaseEngine):
     """
 
     def setup(self) -> None:
-        mglw.settings.WINDOW["class"] = "moderngl_window.context.pyglet.Window"
-        mglw.settings.WINDOW["size"] = (self.width, self.height)
-        mglw.settings.WINDOW["title"] = self.title
-        mglw.settings.WINDOW["resizable"] = True
+        settings.WINDOW["class"] = "moderngl_window.context.pyglet.Window"
+        settings.WINDOW["size"] = (self.width, self.height)
+        settings.WINDOW["title"] = self.title
+        settings.WINDOW["resizable"] = True
+        settings.WINDOW["vsync"] = False
 
         self.window = mglw.create_window_from_settings()
         self.ctx = self.window.ctx
@@ -40,7 +42,7 @@ class ModernGLEngine(BaseEngine):
         pass
 
     def render(self) -> None:
-        self.window.clear(*_BG)
+        self.window.clear(*_BG) # type: ignore
         self.window.swap_buffers()
 
     def teardown(self) -> None:

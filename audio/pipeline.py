@@ -19,6 +19,7 @@ class AudioPipeline:
         self.position: int = 0 
         self.duration: float = 0.0
         self.num_windows: int = 0
+        self.debug: bool = False
 
     def load(self) -> None:
         """Load the audio file at self.file_path via librosa, at
@@ -66,9 +67,20 @@ class AudioPipeline:
         This return value is passed directly into engine.update().
         """
         current_data: dict = {
-            "amplitude": self.get_rms(),
+            "amplitude": 0.0
         }
+        
+        if self.signal is not None:
+            current_data = {
+                "amplitude": self.get_rms(),
+            }
+            if (self.debug):
+                print(f"position={self.position},  signal length={len(self.signal)}, data={current_data}")
+        else:
+            return current_data
 
         self.position += self.window_size
+        if self.position >= len(self.signal):
+            self.position = 0
 
         return current_data
