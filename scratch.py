@@ -1,12 +1,16 @@
 import librosa
 import numpy
 import random
+import time
 import matplotlib.pyplot as plt
 from audio.pipeline import AudioPipeline
 
 pipeline: AudioPipeline = AudioPipeline(file_path="audio/track1.mp3")
 pipeline.load()
-print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pipeline.duration, 2)) + ",", "seconds", "Total Samples:", str(len(pipeline.signal)), "Array dtype:", str(pipeline.signal.dtype))
+
+pipeline.fourier_transform()
+
+# print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pipeline.duration, 2)) + ",", "seconds", "Total Samples:", str(len(pipeline.signal)), "Array dtype:", str(pipeline.signal.dtype))
 
 # position_from_seconds: float = pipeline.duration / 2
 # pipeline.position = int(position_from_seconds * pipeline.sample_rate)
@@ -39,39 +43,39 @@ print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pi
 #     manual_rms: float = numpy.sqrt(numpy.mean(numpy.square(signal)))
 #     print(f"Manual RMS: {manual_rms:.4f}")
 
-data:dict = {
-    "max_amp": {
-        "value": float("-inf"),
-        "seconds": 0.0,
-    },
-    "min_amp": {
-        "value": float("inf"),
-        "seconds": 0.0,
-    }
-}
+# data:dict = {
+#     "max_amp": {
+#         "value": float("-inf"),
+#         "seconds": 0.0,
+#     },
+#     "min_amp": {
+#         "value": float("inf"),
+#         "seconds": 0.0,
+#     }
+# }
 
-complete_windows: int = pipeline.num_windows
-for i in range(0, complete_windows):
-    pipeline.position = i * pipeline.window_size
-    rms: float = round(pipeline.get_features()["amplitude"], 4)
-    seconds = round(pipeline.position / pipeline.sample_rate, 2)
+# complete_windows: int = pipeline.num_windows
+# while True:
+#     time.sleep(pipeline.window_size / pipeline.sample_rate)
+#     rms: float = round(pipeline.get_features()["amplitude"], 4)
+#     seconds = round(pipeline.position / pipeline.sample_rate, 2)
 
-    data["max_amp"]["value"] = max(data["max_amp"]["value"], rms)
-    if rms == data["max_amp"]["value"]:
-        data["max_amp"]["seconds"] = seconds
+#     data["max_amp"]["value"] = max(data["max_amp"]["value"], rms)
+#     if rms == data["max_amp"]["value"]:
+#         data["max_amp"]["seconds"] = seconds
 
-    data["min_amp"]["value"] = min(data["min_amp"]["value"], rms)
-    if rms == data["min_amp"]["value"]:
-        data["min_amp"]["seconds"] = seconds
+#     data["min_amp"]["value"] = min(data["min_amp"]["value"], rms)
+#     if rms == data["min_amp"]["value"]:
+#         data["min_amp"]["seconds"] = seconds
 
-    print(f"Window: {i + 1}\t{seconds}\t{rms:.4f}")
+#     print(f"Window: {pipeline.position // pipeline.window_size + 1}\t{seconds}\t{rms:.2f}")
 
-print(f"Total Complete Windows: {complete_windows}")
-print(f"Smallest RMS Amplitude: {data['min_amp']['value']:.4f} (At {data['min_amp']['seconds']:.2f} seconds), Largest RMS Amplitude: {data['max_amp']['value']:.4f} (At {data['max_amp']['seconds']:.2f} seconds)")
+# print(f"Total Complete Windows: {complete_windows}")
+# print(f"Smallest RMS Amplitude: {data['min_amp']['value']:.4f} (At {data['min_amp']['seconds']:.2f} seconds), Largest RMS Amplitude: {data['max_amp']['value']:.4f} (At {data['max_amp']['seconds']:.2f} seconds)")
 
 
-plt.plot(numpy.arange(len(pipeline.signal)) / pipeline.sample_rate, pipeline.signal)
-plt.xlabel("Seconds")
-plt.ylabel("Amplitude")
-plt.title("Audio Signal")
-plt.show()
+# plt.plot(numpy.arange(len(pipeline.signal)) / pipeline.sample_rate, pipeline.signal)
+# plt.xlabel("Seconds")
+# plt.ylabel("Amplitude")
+# plt.title("Audio Signal")
+# plt.show()
