@@ -118,15 +118,8 @@ class AudioPipeline:
 
         current_data: dict = {
             "amplitude": self.get_rms(),
-            "bass": fourier_result["bass"],
-            "mid": fourier_result["mid"],
-            "treble": fourier_result["treble"],
-            "centeroid": 0.0,
-            "onset": 0.0
         }
 
         self.position += self.window_size
-        if(self.position + self.window_size > len(self.signal)):
-            self.position = 0
 
         return current_data

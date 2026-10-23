@@ -7,10 +7,7 @@ from audio.pipeline import AudioPipeline
 
 pipeline: AudioPipeline = AudioPipeline(file_path="audio/track1.mp3")
 pipeline.load()
-
-pipeline.fourier_transform()
-
-# print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pipeline.duration, 2)) + ",", "seconds", "Total Samples:", str(len(pipeline.signal)), "Array dtype:", str(pipeline.signal.dtype))
+print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pipeline.duration, 2)) + ",", "seconds", "Total Samples:", str(len(pipeline.signal)), "Array dtype:", str(pipeline.signal.dtype))
 
 # position_from_seconds: float = pipeline.duration / 2
 # pipeline.position = int(position_from_seconds * pipeline.sample_rate)
@@ -54,11 +51,11 @@ pipeline.fourier_transform()
 #     }
 # }
 
-# complete_windows: int = pipeline.num_windows
-# while True:
-#     time.sleep(pipeline.window_size / pipeline.sample_rate)
-#     rms: float = round(pipeline.get_features()["amplitude"], 4)
-#     seconds = round(pipeline.position / pipeline.sample_rate, 2)
+complete_windows: int = pipeline.num_windows
+for i in range(0, complete_windows):
+    pipeline.position = i * pipeline.window_size
+    rms: float = round(pipeline.get_features()["amplitude"], 4)
+    seconds = round(pipeline.position / pipeline.sample_rate, 2)
 
 #     data["max_amp"]["value"] = max(data["max_amp"]["value"], rms)
 #     if rms == data["max_amp"]["value"]:
@@ -68,14 +65,31 @@ pipeline.fourier_transform()
 #     if rms == data["min_amp"]["value"]:
 #         data["min_amp"]["seconds"] = seconds
 
-#     print(f"Window: {pipeline.position // pipeline.window_size + 1}\t{seconds}\t{rms:.2f}")
+    print(f"Window: {i + 1}\t{seconds}\t{rms:.4f}")
 
 # print(f"Total Complete Windows: {complete_windows}")
 # print(f"Smallest RMS Amplitude: {data['min_amp']['value']:.4f} (At {data['min_amp']['seconds']:.2f} seconds), Largest RMS Amplitude: {data['max_amp']['value']:.4f} (At {data['max_amp']['seconds']:.2f} seconds)")
 
 
-# plt.plot(numpy.arange(len(pipeline.signal)) / pipeline.sample_rate, pipeline.signal)
-# plt.xlabel("Seconds")
-# plt.ylabel("Amplitude")
-# plt.title("Audio Signal")
-# plt.show()
+plt.plot(numpy.arange(len(pipeline.signal)) / pipeline.sample_rate, pipeline.signal)
+plt.xlabel("Seconds")
+plt.ylabel("Amplitude")
+plt.title("Audio Signal")
+plt.show()
+
+FRAMES: int = 200;
+def max_jump(window_size: int) -> tuple:
+    pipeline.position = 0
+    pipeline.window_size = window_size
+    amp: list = [pipeline.get_features()["amplitude"] for _ in range(FRAMES)]
+    jumps: list = [abs(amp[i] - amp[i - 1]) for i in range(1, len(amp))]
+    index: int = jumps.index(max(jumps))
+    return max(jumps), index + 1, amp[index], amp[index + 1]
+
+for window_size in (256, 1024, 4096):
+    jump: float
+    frame: int
+    before_jump: float
+    after_jump: float
+    jump, frame, before_jump, after_jump = max_jump(window_size)
+    print(f"Window size={window_size} at frame {frame}, max jump={jump:.4f}, before jump={before_jump:.4f}, after jump={after_jump:.4f}")
