@@ -172,11 +172,10 @@ class AudioPipeline:
         return centroid / nyquist
 
     def get_onset(self, spectrum: numpy.ndarray) -> float:
-        if self.__previous_magnitudes is None:
-            onset = 0.0
-        else:
-            dist = numpy.maximum(spectrum - self.__previous_magnitudes, 0.0)
-            magnitude_sum = float(numpy.sum(spectrum))
+        onset: float = 0.0
+        if self.__previous_magnitudes is not None:
+            dist: numpy.ndarray = numpy.maximum(spectrum - self.__previous_magnitudes, 0.0)
+            magnitude_sum: float = float(numpy.sum(spectrum))
             onset = float(numpy.sum(dist) / magnitude_sum) if magnitude_sum > 0 else 0.0
 
         self.__previous_magnitudes = spectrum
