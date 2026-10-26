@@ -13,25 +13,27 @@ if pipeline.get_signal() is not None:
 ### ONSET AND CENTROID TESTING
 
 def analyze_window() -> tuple:
-    lib_centroids_hz = librosa.feature.spectral_centroid(
+    n_frames: int = (len(pipeline.get_signal()) - pipeline.window_size) // pipeline.hop_size
+
+    lib_centroids_hz: numpy.ndarray = librosa.feature.spectral_centroid(
         y=pipeline.get_signal(), sr=pipeline.sample_rate, 
         n_fft=pipeline.window_size, hop_length=pipeline.hop_size, center=False
     )[0]
-    lib_centroids = lib_centroids_hz / (pipeline.sample_rate / 2)
+    lib_centroids: numpy.ndarray = lib_centroids_hz / (pipeline.sample_rate / 2)
     
-    lib_onsets = librosa.onset.onset_strength(
+    lib_onsets: numpy.ndarray = librosa.onset.onset_strength(
         y=pipeline.get_signal(), sr=pipeline.sample_rate, 
         n_fft=pipeline.window_size, hop_length=pipeline.hop_size, center=False
     )
 
     pipeline.position = 0
-    onset = []
-    centroid = []
-    librosa_onset = []
-    librosa_centroid = []
+    onset: list = []
+    centroid: list = []
+    librosa_onset: list = []
+    librosa_centroid: list = []
     
-    for i in range(200):
-        f = pipeline.get_features()
+    for i in range(n_frames):
+        f: dict[str, float|str] = pipeline.get_features()
         onset.append(f["onset"])
         centroid.append(f["centroid"])
         
@@ -41,37 +43,78 @@ def analyze_window() -> tuple:
     return onset, centroid, librosa_onset, librosa_centroid
 
 
-def librosa_centroid_and_onset(window: numpy.ndarray, sample_rate: int) -> tuple:
-    spectral_centroid = librosa.feature.spectral_centroid(y=window, sr=sample_rate)[0]
-    onset_env = librosa.onset.onset_strength(y=window, sr=sample_rate)
-
-    return spectral_centroid, onset_env
-
+custom_onset: list
+custom_centroid: list
+librosa_onset: list
+librosa_centroid: list
 custom_onset, custom_centroid, librosa_onset, librosa_centroid = analyze_window()
 
-results = [
+results: list[tuple[str, list]] = [
     ("custom centroid", custom_centroid),
     ("librosa centroid", librosa_centroid),
     ("custom onset", custom_onset),
     ("librosa onset", librosa_onset)
 ]
-print("")
+
 print("Feature: mean, min, max")
 for name, data in results:
-    print(f"{name}: mean={numpy.mean(data):.4f}, min={numpy.min(data):.4f}, max={numpy.max(data):.4f}")
-print("")
+    print(f"{name}: mean={numpy.mean(data):.2f}, min={numpy.min(data):.2f}, max={numpy.max(data):.2f}")
 
 loud_pos: int = len(pipeline.get_signal()) // 2
 quiet_pos: int = 0
 
 pipeline.position = loud_pos
-loud = pipeline.get_features()
-print(f"LOUD  Centroid: {loud['centroid']:.2f}, Onset: {loud['onset']:.2f}, RMS: {loud['amplitude']:.4f}, Peak: {loud['peak']:.4f}")
+loud: dict[str, float|str] = pipeline.get_features()
+print(f"\nLOUD  Centroid: {loud['centroid']:.2f}, Onset: {loud['onset']:.2f}, RMS: {loud['amplitude']:.2f}, Peak: {loud['peak']:.2f}")
 
 pipeline.position = quiet_pos
-quiet = pipeline.get_features()
-print(f"QUIET Centroid: {quiet['centroid']:.2f}, Onset: {quiet['onset']:.2f}, RMS: {quiet['amplitude']:.4f}, Peak: {quiet['peak']:.4f}")
+quiet: dict[str, float|str] = pipeline.get_features()
+print(f"QUIET Centroid: {quiet['centroid']:.2f}, Onset: {quiet['onset']:.2f}, RMS: {quiet['amplitude']:.2f}, Peak: {quiet['peak']:.2f}")
 
+
+def top_onset(amount: int = 5) -> None:
+    n_frames: int = len(custom_onset)
+    times: list[float] = [i * pipeline.hop_size / pipeline.sample_rate for i in range(n_frames)]
+
+    positions: list[int] = list(range(len(custom_onset)))
+    positions.sort(key=lambda i: custom_onset[i], reverse=True)
+    
+    top_times: list[float] = []
+    for i in positions:
+        time = times[i]
+        if all(abs(time - t) >= 0.5 for t in top_times):
+            top_times.append(time)
+        if len(top_times) == amount:
+            break
+            
+    top_times.sort()
+
+    lib_times: numpy.ndarray = librosa.onset.onset_detect(y=pipeline.get_signal(), sr=pipeline.sample_rate, units="time")
+    
+    print("")
+    print(f"top {amount} onsets: {[round(t, 2) for t in top_times]}")
+    print(f"librosa detected {len(lib_times)} onsets across the whole track.")
+    
+    matches: int = 0
+    for custom_time in top_times:
+        closest: float = 0.0
+        smallest_diff: float = 999.0
+        
+        for lib_time in lib_times:
+            diff: float = abs(lib_time - custom_time)
+            if diff < smallest_diff:
+                smallest_diff = diff
+                closest = lib_time
+                
+        if smallest_diff <= 0.1:
+            matches += 1
+            print(f"{custom_time:.2f}s matched (Librosa {closest:.2f}s)")
+        else:
+            print(f"{custom_time:.2f}s did not match (Closest {closest:.2f}s)")
+            
+    print(f"Result: {matches}/{len(top_times)} matched")
+    
+top_onset()
 
 # position_from_seconds: float = pipeline.duration / 2
 # pipeline.position = int(position_from_seconds * pipeline.sample_rate)
@@ -94,7 +137,7 @@ print(f"QUIET Centroid: {quiet['centroid']:.2f}, Onset: {quiet['onset']:.2f}, RM
 # data.sort(key=lambda x: x[0])
 # print("Sample (N)\tSeconds\tAmplitude")
 # for seconds, rms in data:
-#     print(f"Sample: {data.index((seconds, rms)) + 1}\t{seconds}\t{rms:.4f}")
+#     print(f"Sample: {data.index((seconds, rms)) + 1}\t{seconds}\t{rms:.2f}")
 
 # print("Manual RMS Calculation:")
 # if selected_sample:
