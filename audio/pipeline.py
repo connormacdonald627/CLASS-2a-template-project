@@ -186,9 +186,13 @@ class AudioPipeline:
             raise ValueError("Invalid window position. Call load() first and ensure the position is within valid range.")
         current_window: numpy.ndarray = self.get_window() * numpy.hanning(self.window_size)
         spectrum: numpy.ndarray = numpy.abs(numpy.fft.rfft(current_window))
+
         num_bins: int = len(spectrum)
-        hz: float = self.sample_rate / self.window_size
-        bins: numpy.ndarray = numpy.array([i * hz for i in range(num_bins)])
+        bins: numpy.ndarray = numpy.fft.rfftfreq(
+            self.window_size,
+            d=1 / self.sample_rate,
+        )
+        
         return {
             "total_bins": num_bins,
             "bins": bins,
