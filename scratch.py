@@ -56,9 +56,9 @@ results = [
     ("librosa onset", librosa_onset)
 ]
 print("")
-print("Feature\t: mean, min, max")
+print("Feature: mean, min, max")
 for name, data in results:
-    print(f"{name}\t: mean={numpy.mean(data):.4f}, min={numpy.min(data):.4f}, max={numpy.max(data):.4f}")
+    print(f"{name}: mean={numpy.mean(data):.4f}, min={numpy.min(data):.4f}, max={numpy.max(data):.4f}")
 print("")
 
 loud_pos: int = len(pipeline.get_signal()) // 2
