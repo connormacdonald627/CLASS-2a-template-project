@@ -7,8 +7,8 @@ from audio.pipeline import AudioPipeline
 
 pipeline: AudioPipeline = AudioPipeline(file_path="audio/track1.mp3")
 pipeline.load()
-if pipeline.signal is not None:
-    print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pipeline.track_data["duration"], 2)) + ",", "seconds", "Total Samples:", str(len(pipeline.signal)), "Array dtype:", str(pipeline.signal.dtype))
+if pipeline.get_signal() is not None:
+    print("Sample Rate:", str(pipeline.sample_rate) + ",", "Duration:", str(round(pipeline.track_data["duration"], 2)) + ",", "seconds", "Total Samples:", str(len(pipeline.get_signal())), "Array dtype:", str(pipeline.get_signal().dtype))
 
 # position_from_seconds: float = pipeline.duration / 2
 # pipeline.position = int(position_from_seconds * pipeline.sample_rate)

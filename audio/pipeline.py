@@ -22,7 +22,7 @@ class AudioPipeline:
         self.position: int = 0
         self.num_windows: int = 0
         self.hop_size: int = 256
-        self.play_audio = True
+        self.play_audio = False
         self.debug = True
         self.band_limits: dict[str, int | float] = {
             "low_hz": 250,
@@ -58,7 +58,6 @@ class AudioPipeline:
         if self.__signal is None or len(self.__signal) == 0:
             raise ValueError(f"Failed to load audio file: {self.file_path}")
 
-        # Reset per-track state so a second load() doesn't inherit history.
         self.position = 0
         self.__previous_magnitudes = None
         self.__time_since_advance = 0.0
@@ -162,30 +161,24 @@ class AudioPipeline:
         return {"bass": bass, "mid": mid, "treble": treble, "dominant_band": dominant_band}
 
     def get_centroid(self, spectrum: numpy.ndarray, bins: numpy.ndarray) -> float:
-        log_spectrum = numpy.log1p(spectrum)
-        magnitude_sum: float = float(numpy.sum(log_spectrum))
+        magnitude_sum: float = float(numpy.sum(spectrum))
 
         if magnitude_sum == 0:
             return 0.0
 
-        centroid: float = float(numpy.sum(bins * log_spectrum) / magnitude_sum)
+        centroid: float = float(numpy.sum(bins * spectrum) / magnitude_sum)
 
         nyquist: int = self.sample_rate // 2
         return centroid / nyquist
 
     def get_onset(self, spectrum: numpy.ndarray) -> float:
-        log_spectrum: numpy.ndarray = numpy.log1p(spectrum)
-        magnitude_sum: float = float(numpy.sum(log_spectrum))
-        if magnitude_sum == 0:
-            return 0.0
-
         if self.__previous_magnitudes is None:
             onset = 0.0
         else:
-            dist = numpy.maximum(log_spectrum - self.__previous_magnitudes, 0.0)
-            onset = float(numpy.sum(dist)) / magnitude_sum
-
-        self.__previous_magnitudes = log_spectrum
+            dist = numpy.maximum(spectrum - self.__previous_magnitudes, 0.0)
+            onset = float(numpy.mean(dist))
+            
+        self.__previous_magnitudes = spectrum
         return onset
 
     def fourier_transform(self) -> dict[str, int | float | str | numpy.ndarray]:
