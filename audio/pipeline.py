@@ -23,7 +23,7 @@ class AudioPipeline:
         self.num_windows: int = 0
         self.hop_size: int = 256
         self.play_audio = False
-        self.debug = True
+        self.debug = False
         self.band_limits: dict[str, int | float] = {
             "low_hz": 250,
             "high_hz": 2500,
@@ -176,8 +176,9 @@ class AudioPipeline:
             onset = 0.0
         else:
             dist = numpy.maximum(spectrum - self.__previous_magnitudes, 0.0)
-            onset = float(numpy.mean(dist))
-            
+            magnitude_sum = float(numpy.sum(spectrum))
+            onset = float(numpy.sum(dist) / magnitude_sum) if magnitude_sum > 0 else 0.0
+
         self.__previous_magnitudes = spectrum
         return onset
 
