@@ -23,7 +23,7 @@ class AudioPipeline:
         self.num_windows: int = 0
         self.hop_size: int = 256
         self.play_audio = False
-        self.debug = False
+        self.debug = True
         self.band_limits: dict[str, int | float] = {
             "low_hz": 250,
             "high_hz": 2500,
@@ -66,9 +66,8 @@ class AudioPipeline:
         self.track_data["seconds"] = self.position / self.sample_rate
         self.track_data["duration"] = len(self.__signal) / self.sample_rate
 
-        bins = numpy.fft.rfftfreq(self.window_size, 1 / self.sample_rate)
-        self.band_limits["low_bin_index"]  = self.get_bin_index(self.band_limits["low_hz"],  bins)
-        self.band_limits["high_bin_index"] = self.get_bin_index(self.band_limits["high_hz"], bins)
+        self.band_limits["low_bin_index"]  = (self.band_limits["low_hz"] * self.window_size / self.sample_rate)
+        self.band_limits["high_bin_index"] = (self.band_limits["high_hz"] * self.window_size / self.sample_rate)
         self.band_limits["bass_peak"]      = self.__compute_band_peak("bass")
         self.band_limits["mid_peak"]       = self.__compute_band_peak("mid")
         self.band_limits["treble_peak"]    = self.__compute_band_peak("treble")
@@ -132,10 +131,6 @@ class AudioPipeline:
     def get_peak(self) -> float:
         peak = numpy.max(numpy.abs(self.get_window()))
         return float(peak)
-
-    def get_bin_index(self, target: float, bins: numpy.ndarray) -> int:
-        closest_index: int = int(numpy.argmin(numpy.abs(numpy.array(bins) - target)))
-        return closest_index
 
     def get_bands(self, spectrum: numpy.ndarray) -> dict[str, float | str]:
         low_bin_index: int = int(self.band_limits["low_bin_index"])
