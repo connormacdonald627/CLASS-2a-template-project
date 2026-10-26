@@ -258,10 +258,10 @@ class AudioPipeline:
         }
         if self.debug:
             print(
-                f"[{self.track_data['seconds']:.2f}s/{self.track_data['duration']:.2f}s]\t"
-                f"amplitude={amplitude:.2f} peak={peak:.2f}\t"
-                f"bass={bands['bass']:.2f} mid={bands['mid']:.2f} treble={bands['treble']:.2f} dominant_band={bands['dominant_band']}\t"
-                f"centroid={centroid:.2f} onset={onset:.2f}\t"
+                f"[{self.track_data['seconds']:.2f}s/{self.track_data['duration']:.2f}s]    \t"
+                f"amplitude={amplitude:.2f} peak={peak:.2f}     \t"
+                f"bass={bands['bass']:.2f} mid={bands['mid']:.2f} treble={bands['treble']:.2f} dominant_band={bands['dominant_band']}   \t"
+                f"centroid={centroid:.2f} onset={onset:.2f}     \t"
             )
 
         step: int = min(max(self.hop_size, 0), self.window_size)
