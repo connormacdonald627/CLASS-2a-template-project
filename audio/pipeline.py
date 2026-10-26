@@ -95,8 +95,8 @@ class AudioPipeline:
         return window
 
     def get_rms(self) -> float:
-        squared_signal = numpy.square(self.get_window())
-        rms = numpy.sqrt(numpy.mean(squared_signal))
+        squared_signal: numpy.ndarray = numpy.square(self.get_window())
+        rms: float = numpy.sqrt(numpy.mean(squared_signal))
         return rms
 
     def __compute_band_peak(self, band: str) -> float:
@@ -137,7 +137,7 @@ class AudioPipeline:
         closest_index: int = int(numpy.argmin(numpy.abs(numpy.array(bins) - target)))
         return closest_index
 
-    def get_bands(self, spectrum: numpy.ndarray, bins: numpy.ndarray) -> dict[str, float | str]:
+    def get_bands(self, spectrum: numpy.ndarray) -> dict[str, float | str]:
         low_bin_index: int = int(self.band_limits["low_bin_index"])
         high_bin_index: int = int(self.band_limits["high_bin_index"])
         bass: float = float(numpy.log1p(numpy.sum(spectrum[0:low_bin_index] ** 2)))
@@ -242,7 +242,7 @@ class AudioPipeline:
         bins, spectrum = fourier_result["bins"], fourier_result["spectrum"]
         amplitude: float = self.get_rms()
         peak: float = self.get_peak()
-        bands: dict[str, float | str] = self.get_bands(spectrum, bins)
+        bands: dict[str, float | str] = self.get_bands(spectrum)
         centroid: float = self.get_centroid(spectrum, bins)
         onset: float = self.get_onset(spectrum)
 
