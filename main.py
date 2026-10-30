@@ -20,7 +20,7 @@ AUDIO_FILE = "./audio/Rain_World_-_Threat_-_Sunken_Pier.mp3"
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "CLASS-2a Project"
-TARGET_FPS = 60
+TARGET_FPS = 0
 
 def run_full_app():
     engine = ENGINE(width=WINDOW_WIDTH, height=WINDOW_HEIGHT, title=WINDOW_TITLE, target_fps=TARGET_FPS)
@@ -30,19 +30,11 @@ def run_full_app():
         pipeline.load()
     except NotImplementedError:
         print("Audio file format not supported. Skipping audio pipeline.")
-        engine.run(feature_source=lambda: {})
+        engine.run(feature_source=lambda delta_time: {})
         return
 
-    last_time = time.time()
+    engine.run(feature_source=lambda delta_time: pipeline.get_features(delta_time))
 
-    def feature_source() -> dict:
-        nonlocal last_time
-        now = time.time()
-        delta_time = min(now - last_time, 0.1)
-        last_time = now
-        return pipeline.get_features(delta_time)
-
-    engine.run(feature_source=feature_source)
 
 
 if __name__ == "__main__":

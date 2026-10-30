@@ -11,17 +11,18 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
-# Shared across all three stub engines so the "blank window" baseline looks
-# the same regardless of which tier a student has chosen.
-BACKGROUND_COLOR = (18, 18, 18)
-
-
 class BaseEngine(ABC):
     def __init__(self, width: int, height: int, title: str, target_fps: int = 60) -> None:
-        self.width = width
-        self.height = height
-        self.title = title
-        self.target_fps = target_fps
+        self.width: int = width
+        self.height: int = height
+        self.title: str = title
+        self.target_fps: int = target_fps
+        self.delta_time: float = 0.0
+        self.time_scale: float = 1.0
+        self.vsync: bool = False
+        self.resizable: bool = True
+        self.clear_color: tuple[float, float, float] = (0.1, 0.1, 0.1)
+        self.time: float = 0.0
 
     @abstractmethod
     def setup(self) -> None:
@@ -33,9 +34,12 @@ class BaseEngine(ABC):
 
         Return False to end the run loop (window close, Esc key, etc).
         """
+    @abstractmethod
+    def start(self) -> None:
+        """Called once, after setup and before the first frame of the loop."""
 
     @abstractmethod
-    def update(self, audio_features: dict) -> None:
+    def update(self, audio_features: dict[str, float|str]) -> None:
         """Advance state for this frame using the latest audio feature values."""
 
     @abstractmethod
@@ -46,23 +50,33 @@ class BaseEngine(ABC):
     def teardown(self) -> None:
         """Release engine resources on exit (close window/context)."""
 
-    def run(self, feature_source: Callable[[], dict]) -> None:
+    def run(self, feature_source: Callable[[float], dict[str, float|str]]) -> None:
         """Owns the engine lifecycle: setup once, loop until handle_events()
         returns False, then teardown. Do not override this method — every
         engine tier shares this exact loop.
         """
-        frame_duration = 1.0 / self.target_fps
+        frame_duration = 0.0
+        if self.target_fps <= 0:
+            frame_duration = 0.0
+        else:
+            frame_duration = 1.0 / self.target_fps
+
         self.setup()
+        self.start()
         try:
             running = True
+            previous_frame_start = time.perf_counter()
             while running:
                 frame_start = time.perf_counter()
+                self.delta_time = (frame_start - previous_frame_start) * self.time_scale
+                self.time += self.delta_time
+                previous_frame_start = frame_start
 
                 running = self.handle_events()
                 if not running:
                     break
 
-                audio_features = feature_source()
+                audio_features = feature_source(self.delta_time)
                 self.update(audio_features)
                 self.render()
 

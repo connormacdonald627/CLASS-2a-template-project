@@ -23,7 +23,7 @@ class AudioPipeline:
         self.num_windows: int = 0
         self.hop_size: int = 256
         self.play_audio = False
-        self.debug = True
+        self.debug = False
         self.band_limits: dict[str, int | float] = {
             "low_hz": 250,
             "high_hz": 2500,
