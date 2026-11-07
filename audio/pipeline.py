@@ -40,6 +40,7 @@ class AudioPipeline:
         }
         self.__previous_magnitudes: numpy.ndarray | None = None
         self.__time_since_advance = 0.0
+        self.__pending_audio: numpy.ndarray | None = None
 
     def load(self) -> None:
         """Load the audio file at self.file_path via librosa, at
@@ -61,6 +62,7 @@ class AudioPipeline:
         self.position = 0
         self.__previous_magnitudes = None
         self.__time_since_advance = 0.0
+        self.__pending_audio = None
 
         self.num_windows = len(self.__signal) // self.window_size
         self.track_data["seconds"] = self.position / self.sample_rate
@@ -187,7 +189,7 @@ class AudioPipeline:
             self.window_size,
             d=1 / self.sample_rate,
         )
-        
+
         return {
             "total_bins": num_bins,
             "bins": bins,
@@ -196,36 +198,51 @@ class AudioPipeline:
 
     def __build_sound_buffer(self) -> None:
         signal: numpy.ndarray = self.get_signal()
-        if pygame.mixer.get_init() != (self.sample_rate, -16, 2):
-            pygame.mixer.quit()
-            pygame.mixer.init(
-                frequency=self.sample_rate,
-                size=-16,
-                channels=2,
-                buffer=128,
-            )
+        pygame.mixer.quit()
+        pygame.mixer.init(
+            frequency=self.sample_rate,
+            size=-16,
+            channels=2,
+            buffer=128,
+        )
 
-        pcm_samples = (numpy.clip(signal, -1.0, 1.0) * 32767).astype(numpy.int16)
+        pcm_samples = (numpy.clip(signal, -1.0, 1.0) * numpy.iinfo(numpy.int16).max).astype(numpy.int16)
         self.track_data["stereo_buffer"] = numpy.ascontiguousarray(
             numpy.column_stack((pcm_samples, pcm_samples))
         )
 
     def __play_window_audio(self, step: int) -> None:
+        """Play the audio corresponding to the current window step."""
+        
         stereo_buffer = self.track_data["stereo_buffer"]
-        if self.__signal is None or stereo_buffer is None:
+        if self.__signal is None or stereo_buffer is None or step <= 0:
             return
 
-        channel = pygame.mixer.Channel(0)
         chunk_end = min(self.position + step, len(stereo_buffer))
-        if chunk_end <= self.position:
+        if chunk_end > self.position:
+            chunk = stereo_buffer[self.position:chunk_end]
+            self.__pending_audio = (
+                chunk if self.__pending_audio is None
+                else numpy.concatenate((self.__pending_audio, chunk))
+            )
+
+        if self.__pending_audio is None:
             return
 
-        sound = pygame.sndarray.make_sound(stereo_buffer[self.position:chunk_end])
-        if not channel.get_busy():
-            channel.play(sound)
-        elif channel.get_queue() is None:
-            channel.queue(sound)
+        if len(self.__pending_audio) > self.sample_rate:
+            self.__pending_audio = self.__pending_audio[-self.sample_rate:]
 
+        channel: pygame.mixer.Channel = pygame.mixer.Channel(0)
+        if channel.get_busy() and channel.get_queue() is not None:
+            return 
+
+        sound: pygame.mixer.Sound = pygame.sndarray.make_sound(numpy.ascontiguousarray(self.__pending_audio))
+        if channel.get_busy():
+            channel.queue(sound)
+        else:
+            channel.play(sound)
+        self.__pending_audio = None
+        
     def get_features(self, delta_time: float = 0.0) -> dict[str, float | str]:
         """Extract numerical features (amplitude at minimum) from the current
         window of the loaded signal, advance the pipeline's internal read
