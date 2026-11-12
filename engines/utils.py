@@ -135,7 +135,7 @@ class Utils:
         x, y, z = position
         rot_matrix = rotation.as_matrix().astype(np.float32)
         inverted_rot = rot_matrix.T # Transpose to invert the rotation matrix for the view matrix
-        inverted_trans = np.array([-x, -y, -z], dtype=np.float32) @ inverted_rot
+        inverted_trans = -(inverted_rot @ np.array([x, y, z], dtype=np.float32))
 
         view_matrix = np.array(
             [
