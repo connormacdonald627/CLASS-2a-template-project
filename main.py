@@ -7,7 +7,7 @@ decision, not something to toggle per run.
 
 from collections.abc import Callable
 
-from audio.pipeline import AudioPipeline
+from pipeline import AudioPipeline
 from engines.base_engine import BaseEngine
 from engines.modern_gl_engine import ModernGLEngine
 import time
