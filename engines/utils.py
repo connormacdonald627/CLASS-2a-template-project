@@ -4,7 +4,7 @@ import numpy as np
 import struct
 from PIL import Image
 from scipy.spatial.transform import Rotation
-from engines.Mesh import Mesh
+from engines.mesh import Mesh
 
 
 class Utils:
