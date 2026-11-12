@@ -41,7 +41,7 @@ class ModernGLEngine(BaseEngine):
         shader_program = Utils.create_standard_shader(self.ctx)
         Utils.set_shader_texture(shader_program, Utils.generate_default_texture(self.ctx, "checkerboard"), "maintex")
         self.cube_mesh: Mesh = Utils.create_cube_mesh(shader_program)
-        self.cube_mesh.position = (0.0, 0.0, -2.5)
+        self.cube_mesh.position = [0.0, 0.0, -2.5]
         self.lerped_features["amplitude"] = 1.0
 
     def update(self, audio_features: dict[str, float|str]) -> None:
@@ -51,8 +51,9 @@ class ModernGLEngine(BaseEngine):
         amplitude: float = (float(raw_amplitude) * 2.0) + 0.5
 
         self.lerped_features["amplitude"] = Utils.lerp(self.lerped_features["amplitude"], amplitude, 15 * delta_time)
-        self.cube_mesh.scale = (self.lerped_features["amplitude"], self.lerped_features["amplitude"], self.lerped_features["amplitude"])
-        self.cube_mesh.rotation = (self.time, self.time, self.time)
+        self.cube_mesh.scale = [self.lerped_features["amplitude"], self.lerped_features["amplitude"], self.lerped_features["amplitude"]]
+
+        self.cube_mesh.rotation *= Rotation.from_euler("xyz", [delta_time, delta_time, delta_time])
 
         print(f"FPS: {1.0 / delta_time if delta_time > 0 else 0.0}")
 

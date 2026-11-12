@@ -168,52 +168,27 @@ class Utils:
 
     @staticmethod
     def create_model_view_matrix(
-        translation: tuple[float, float, float],
-        rotation: tuple[float, float, float],
-        scale: tuple[float, float, float],
+        position: list[float],
+        rotation: Rotation,
+        scale: list[float],
         view_projection: list[list[float]],
     ) -> list[list[float]]:
-        """Create a model-view-projection matrix based on translation, rotation, scale, and view projection"""
+        """Create a model-view-projection matrix based on position, rotation, scale, and view projection"""
 
-        tx, ty, tz = translation
-        sx, sy, sz = scale
+        x, y, z = position
+        rotation_matrix = rotation.as_matrix().astype(np.float32)
+        scale_x, scale_y, scale_z = np.asarray(scale, dtype=np.float32)
 
-        translation_matrix = np.array(
+        # Scale the rotation matrix's columns so scaling happens before rotation.
+        model_matrix = np.array(
             [
-                [1.0, 0.0, 0.0, tx],
-                [0.0, 1.0, 0.0, ty],
-                [0.0, 0.0, 1.0, tz],
+                [rotation_matrix[0, 0] * scale_x, rotation_matrix[0, 1] * scale_y, rotation_matrix[0, 2] * scale_z, x],
+                [rotation_matrix[1, 0] * scale_x, rotation_matrix[1, 1] * scale_y, rotation_matrix[1, 2] * scale_z, y],
+                [rotation_matrix[2, 0] * scale_x, rotation_matrix[2, 1] * scale_y, rotation_matrix[2, 2] * scale_z, z],
                 [0.0, 0.0, 0.0, 1.0],
             ],
             dtype=np.float32,
         )
 
-        # Constructs a rotation matrix from the rotation from 
-        # euler angles represented as a rotation vector (axis-angle)
-        # to prevent gimbal lock to allow proper rotation handling
-        rotation_vector: np.ndarray = Rotation.from_rotvec(rotation).as_matrix()
-        rotation_matrix: np.ndarray = np.array(
-            [
-                [rotation_vector[0, 0], rotation_vector[0, 1], rotation_vector[0, 2], 0.0],
-                [rotation_vector[1, 0], rotation_vector[1, 1], rotation_vector[1, 2], 0.0],
-                [rotation_vector[2, 0], rotation_vector[2, 1], rotation_vector[2, 2], 0.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ],
-            dtype=np.float32,
-        )
-
-        scale_matrix = np.array(
-            [
-                [sx, 0.0, 0.0, 0.0],
-                [0.0, sy, 0.0, 0.0],
-                [0.0, 0.0, sz, 0.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ],
-            dtype=np.float32,
-        )
-
-        # Contruct MVP matrix based on translation, rotation, scale, and view projection
-        model_matrix: np.ndarray = translation_matrix @ rotation_matrix @ scale_matrix
-        view_projection_matrix: np.ndarray = np.array(view_projection, dtype=np.float32)
-        model_view_projection_matrix: np.ndarray = view_projection_matrix @ model_matrix
-        return model_view_projection_matrix.tolist()
+        # Construct the MVP matrix from the model and view-projection matrices.
+        return (np.asarray(view_projection, dtype=np.float32) @ model_matrix).tolist()

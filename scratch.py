@@ -3,7 +3,7 @@ import numpy
 import random
 import time
 import matplotlib.pyplot as plt
-from audio.pipeline import AudioPipeline
+from pipeline import AudioPipeline
 
 pipeline: AudioPipeline = AudioPipeline(file_path="audio/track1.mp3")
 pipeline.load()

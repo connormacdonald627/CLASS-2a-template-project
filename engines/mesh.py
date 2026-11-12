@@ -1,5 +1,6 @@
 import moderngl
 import struct
+from scipy.spatial.transform import Rotation
 
 class Mesh:
     def __init__(
@@ -21,9 +22,9 @@ class Mesh:
         self.__indexes: list[int] | None = indexes
         self.__vertex_data = vertex_data
         self.shader_program: moderngl.Program | None = shader_program
-        self.position: tuple[float, float, float] = (0.0, 0.0, 0.0)
-        self.rotation: tuple[float, float, float] = (0.0, 0.0, 0.0)
-        self.scale: tuple[float, float, float] = (1.0, 1.0, 1.0)
+        self.position: list[float] = [0.0, 0.0, 0.0]
+        self.rotation: Rotation = Rotation.identity()
+        self.scale: list[float] = [1.0, 1.0, 1.0]
         self.__validate_attributes()
 
     def __validate_attributes(self) -> None:
