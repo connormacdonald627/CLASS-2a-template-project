@@ -53,7 +53,7 @@ class ModernGLEngine(BaseEngine):
         self.lerped_features["amplitude"] = Utils.lerp(self.lerped_features["amplitude"], amplitude, 15 * delta_time)
         self.cube_mesh.scale = [self.lerped_features["amplitude"], self.lerped_features["amplitude"], self.lerped_features["amplitude"]]
 
-        self.cube_mesh.rotation *= Rotation.from_euler("xyz", [delta_time, delta_time, delta_time])
+        self.cube_mesh.rotation = Rotation.from_euler("xyz", [self.time, self.time, self.time])
 
         print(f"FPS: {1.0 / delta_time if delta_time > 0 else 0.0}")
 
