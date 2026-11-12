@@ -12,7 +12,7 @@ if pipeline.get_signal() is not None:
 
 ### ONSET AND CENTROID TESTING
 
-def analyze_window() -> tuple:
+def analyze_window() -> tuple[list[float | str], list[float | str], list[float], list[float]]:
     n_frames: int = (len(pipeline.get_signal()) - pipeline.window_size) // pipeline.hop_size
 
     lib_centroids_hz: numpy.ndarray = librosa.feature.spectral_centroid(
@@ -49,7 +49,7 @@ librosa_onset: list
 librosa_centroid: list
 custom_onset, custom_centroid, librosa_onset, librosa_centroid = analyze_window()
 
-results: list[tuple[str, list]] = [
+results: list[tuple[str, list[float]]] = [
     ("custom centroid", custom_centroid),
     ("librosa centroid", librosa_centroid),
     ("custom onset", custom_onset),
@@ -200,7 +200,6 @@ top_onset()
 #     after_jump: float
 #     jump, frame, before_jump, after_jump = max_jump(window_size)
 #     print(f"Window size={window_size} at frame {frame}, max jump={jump:.4f}, before jump={before_jump:.4f}, after jump={after_jump:.4f}")
-
 
 
 

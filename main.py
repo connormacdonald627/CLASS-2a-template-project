@@ -16,13 +16,14 @@ import time
 # how/why this is a one-time project decision, not a runtime toggle.
 ENGINE: type[BaseEngine] = ModernGLEngine
 
-AUDIO_FILE = "./audio/Rain_World_-_Threat_-_Sunken_Pier.mp3"
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-WINDOW_TITLE = "CLASS-2a Project"
-TARGET_FPS = 0
+AUDIO_FILE: str = "./audio/Rain_World_-_Threat_-_Sunken_Pier.mp3"
+WINDOW_WIDTH: int = 1280
+WINDOW_HEIGHT: int = 720
+WINDOW_TITLE: str = "CLASS-2a Project"
+TARGET_FPS: int = 0
 
-def run_full_app():
+
+def run_full_app() -> None:
     engine = ENGINE(width=WINDOW_WIDTH, height=WINDOW_HEIGHT, title=WINDOW_TITLE, target_fps=TARGET_FPS)
 
     pipeline = AudioPipeline(file_path=AUDIO_FILE)

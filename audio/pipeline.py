@@ -22,8 +22,8 @@ class AudioPipeline:
         self.position: int = 0
         self.num_windows: int = 0
         self.hop_size: int = 256
-        self.play_audio = False
-        self.debug = False
+        self.play_audio: bool = True
+        self.debug: bool = False
         self.band_limits: dict[str, int | float] = {
             "low_hz": 250,
             "high_hz": 2500,
@@ -81,12 +81,12 @@ class AudioPipeline:
             return False
         return 0 <= self.position <= len(self.__signal) - self.window_size
 
-    def get_signal(self) -> numpy.ndarray:
+    def get_signal(self) -> numpy.ndarray[tuple[int], numpy.dtype[numpy.float32]]:
         if self.__signal is None:
             raise ValueError("Signal not loaded. Call load() first.")
         return self.__signal
 
-    def get_window(self) -> numpy.ndarray:
+    def get_window(self) -> numpy.ndarray[tuple[int], numpy.dtype[numpy.float32]]:
         if not self.is_valid_window():
             raise ValueError("Invalid window position. Call load() first and ensure the position is within valid range.")
 
@@ -134,7 +134,9 @@ class AudioPipeline:
         peak = numpy.max(numpy.abs(self.get_window()))
         return float(peak)
 
-    def get_bands(self, spectrum: numpy.ndarray) -> dict[str, float | str]:
+    def get_bands(
+        self, spectrum: numpy.ndarray[tuple[int], numpy.dtype[numpy.float64]]
+    ) -> dict[str, float | str]:
         low_bin_index: int = int(self.band_limits["low_bin_index"])
         high_bin_index: int = int(self.band_limits["high_bin_index"])
         bass: float = float(numpy.log1p(numpy.sum(spectrum[0:low_bin_index] ** 2)))
@@ -157,7 +159,11 @@ class AudioPipeline:
 
         return {"bass": bass, "mid": mid, "treble": treble, "dominant_band": dominant_band}
 
-    def get_centroid(self, spectrum: numpy.ndarray, bins: numpy.ndarray) -> float:
+    def get_centroid(
+        self,
+        spectrum: numpy.ndarray[tuple[int], numpy.dtype[numpy.float64]],
+        bins: numpy.ndarray[tuple[int], numpy.dtype[numpy.float64]],
+    ) -> float:
         magnitude_sum: float = float(numpy.sum(spectrum))
 
         if magnitude_sum == 0:
@@ -168,7 +174,9 @@ class AudioPipeline:
         nyquist: int = self.sample_rate // 2
         return centroid / nyquist
 
-    def get_onset(self, spectrum: numpy.ndarray) -> float:
+    def get_onset(
+        self, spectrum: numpy.ndarray[tuple[int], numpy.dtype[numpy.float64]]
+    ) -> float:
         onset: float = 0.0
         if self.__previous_magnitudes is not None:
             dist: numpy.ndarray = numpy.maximum(spectrum - self.__previous_magnitudes, 0.0)
@@ -178,7 +186,9 @@ class AudioPipeline:
         self.__previous_magnitudes = spectrum
         return onset
 
-    def fourier_transform(self) -> dict[str, int | float | str | numpy.ndarray]:
+    def fourier_transform(
+        self,
+    ) -> dict[str, int | numpy.ndarray[tuple[int], numpy.dtype[numpy.float64]]]:
         if not self.is_valid_window():
             raise ValueError("Invalid window position. Call load() first and ensure the position is within valid range.")
         current_window: numpy.ndarray = self.get_window() * numpy.hanning(self.window_size)

@@ -21,7 +21,7 @@ class BaseEngine(ABC):
         self.time_scale: float = 1.0
         self.vsync: bool = False
         self.resizable: bool = True
-        self.clear_color: tuple[float, float, float] = (0.1, 0.1, 0.1)
+        self.clear_colour: tuple[float, float, float] = (0.1, 0.1, 0.1)
         self.time: float = 0.0
 
     @abstractmethod
