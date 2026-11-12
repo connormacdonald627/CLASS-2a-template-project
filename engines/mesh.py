@@ -73,7 +73,7 @@ class Mesh:
         if 'mvp' in self.shader_program:
             from engines.utils import Utils
 
-            mvp = Utils.create_model_view_matrix(self.position, self.rotation, self.scale, view_projection)
+            mvp = Utils.create_mvp(self.position, self.rotation, self.scale, view_projection)
             matrix_data = (mvp[row][column] for column in range(4) for row in range(4))
             uniform = self.shader_program['mvp']
             if isinstance(uniform, moderngl.Uniform):

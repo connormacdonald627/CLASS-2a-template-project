@@ -167,7 +167,7 @@ class Utils:
         return start + (end - start) * t
 
     @staticmethod
-    def create_model_view_matrix(
+    def create_mvp(
         position: list[float],
         rotation: Rotation,
         scale: list[float],
