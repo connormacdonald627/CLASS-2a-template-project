@@ -130,6 +130,22 @@ class Utils:
         return Mesh(vertex_data, indexes, shader_program)
 
     @staticmethod
+    def get_view_matrix(position: list[float], rotation: Rotation) -> list[list[float]]:
+        """Create a view matrix based on position and rotation"""
+        x, y, z = position
+        rot_matrix = rotation.as_matrix().astype(np.float32)
+
+        view_matrix = np.array(
+            [
+                [rot_matrix[0, 0], rot_matrix[0, 1], rot_matrix[0, 2], -x],
+                [rot_matrix[1, 0], rot_matrix[1, 1], rot_matrix[1, 2], -y],
+                [rot_matrix[2, 0], rot_matrix[2, 1], rot_matrix[2, 2], -z],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        )
+        return view_matrix.tolist()
+
+    @staticmethod
     def get_projection_matrix(
         fov: float,
         aspect: float,
