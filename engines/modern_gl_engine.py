@@ -6,8 +6,8 @@ from scipy.spatial.transform import Rotation
 from moderngl_window.conf import settings
 from moderngl_window.context.base.window import BaseWindow
 from engines.base_engine import BaseEngine
-from engines.Mesh import Mesh
-from engines.Utils import Utils
+from engines.mesh import Mesh
+from engines.utils import Utils
 
 class ModernGLEngine(BaseEngine):
     def setup(self) -> None:
