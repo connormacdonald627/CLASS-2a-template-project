@@ -176,15 +176,14 @@ class Utils:
         """Create a model-view-projection matrix based on position, rotation, scale, and view projection"""
 
         x, y, z = position
-        rotation_matrix = rotation.as_matrix().astype(np.float32)
+        rot_matrix = rotation.as_matrix().astype(np.float32)
         scale_x, scale_y, scale_z = np.asarray(scale, dtype=np.float32)
 
-        # Scale the rotation matrix's columns so scaling happens before rotation.
         model_matrix = np.array(
             [
-                [rotation_matrix[0, 0] * scale_x, rotation_matrix[0, 1] * scale_y, rotation_matrix[0, 2] * scale_z, x],
-                [rotation_matrix[1, 0] * scale_x, rotation_matrix[1, 1] * scale_y, rotation_matrix[1, 2] * scale_z, y],
-                [rotation_matrix[2, 0] * scale_x, rotation_matrix[2, 1] * scale_y, rotation_matrix[2, 2] * scale_z, z],
+                [rot_matrix[0, 0] * scale_x, rot_matrix[0, 1] * scale_y, rot_matrix[0, 2] * scale_z, x],
+                [rot_matrix[1, 0] * scale_x, rot_matrix[1, 1] * scale_y, rot_matrix[1, 2] * scale_z, y],
+                [rot_matrix[2, 0] * scale_x, rot_matrix[2, 1] * scale_y, rot_matrix[2, 2] * scale_z, z],
                 [0.0, 0.0, 0.0, 1.0],
             ],
             dtype=np.float32,
