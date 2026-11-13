@@ -9,6 +9,9 @@ from moderngl_window.context.base.window import BaseWindow
 from engines.base_engine import BaseEngine
 from engines.mesh import Mesh
 from engines.utils import Utils
+from engines.shader import Shader
+from engines.texture import Texture
+
 
 class ModernGLEngine(BaseEngine):
     def setup(self) -> None:
@@ -39,9 +42,10 @@ class ModernGLEngine(BaseEngine):
         return not (self.window.is_closing or self._should_close)
 
     def start(self) -> None:
-        shader_program = Utils.create_standard_shader(self.ctx)
-        Utils.set_shader_texture(shader_program, Utils.generate_default_texture(self.ctx, "checkerboard"), "maintex")
-        self.cube_mesh: Mesh = Utils.create_cube_mesh(shader_program)
+        shader = Utils.create_standard_shader(self.ctx)
+        self.default_texture = Texture(self.ctx, fallback="checkerboard")
+        shader.set_texture(self.default_texture, "maintex")
+        self.cube_mesh: Mesh = Utils.create_cube_mesh(shader)
         self.cube_mesh.position = [0.0, 0.0, -2.5]
         self.lerped_features["amplitude"] = 1.0
 

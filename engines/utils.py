@@ -2,9 +2,9 @@ import moderngl
 import math
 import numpy as np
 import struct
-from PIL import Image
 from scipy.spatial.transform import Rotation
 from engines.mesh import Mesh
+from engines.shader import Shader
 
 
 class Utils:
@@ -15,66 +15,19 @@ class Utils:
             return f.read()
 
     @staticmethod
-    def create_standard_shader(ctx: moderngl.Context) -> moderngl.Program:
+    def create_standard_shader(ctx: moderngl.Context) -> Shader:
         vertex_shader_source: str = str(
             Utils.load_file("assets/shaders/standard_vert.glsl")
         )
         fragment_shader_source: str = str(
             Utils.load_file("assets/shaders/standard_frag.glsl")
         )
-        return ctx.program(
+        return Shader(ctx,
             vertex_shader=vertex_shader_source, fragment_shader=fragment_shader_source
         )
 
     @staticmethod
-    def load_texture(ctx: moderngl.Context, file_path: str) -> moderngl.Texture:
-        with Image.open(file_path) as image:
-            rgba: Image.Image = image.convert("RGBA").transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-            return ctx.texture(rgba.size, 4, rgba.tobytes(), alignment=1)
-
-    @staticmethod
-    def generate_default_texture(
-        ctx: moderngl.Context, type: str = "white"
-    ) -> moderngl.Texture:
-        if type == "white":
-            data: bytes = struct.pack("4B", 255, 255, 255, 255)
-        elif type == "black":
-            data: bytes = struct.pack("4B", 0, 0, 0, 255)
-        elif type == "normal":
-            data: bytes = struct.pack("4B", 128, 128, 255, 255)
-        elif type == "checkerboard":
-            purple: bytes = struct.pack("4B", 255, 0, 255, 255)
-            black: bytes = struct.pack("4B", 0, 0, 0, 255)
-            data: bytes = purple + black + black + purple
-            texture = ctx.texture((2, 2), 4, data, alignment=1)
-            return texture
-        else:
-            # Default to white texture if unknown type
-            data: bytes = struct.pack("4B", 255, 255, 255, 255)
-
-        return ctx.texture((1, 1), 4, data, alignment=1)
-
-    @staticmethod
-    def set_shader_texture(
-        shader: moderngl.Program,
-        texture: moderngl.Texture,
-        sampler_name: str,
-        texture_unit: int = 0,
-        sampling_filter: tuple[int, int] = (moderngl.NEAREST, moderngl.NEAREST),
-        wrap_filter: tuple[bool, bool] = (True, True),
-    ) -> None:
-        """Bind a texture to a texture sampler"""
-        try:
-            texture.use(location=texture_unit)
-            texture.filter = sampling_filter
-            texture.repeat_x = wrap_filter[0]
-            texture.repeat_y = wrap_filter[1]
-            shader[sampler_name] = texture_unit
-        except:
-            pass
-
-    @staticmethod
-    def create_cube_mesh(shader_program: moderngl.Program) -> Mesh:
+    def create_cube_mesh(shader: Shader) -> Mesh:
         """Creates a cube mesh"""
 
         vertices: list[tuple[float, float, float]] = [
@@ -127,7 +80,7 @@ class Utils:
             (*vertices[i], 1.0, 1.0, 1.0, *uvs[i], *normals[i])
             for i in range(len(vertices))
         ]
-        return Mesh(vertex_data, indexes, shader_program)
+        return Mesh(vertex_data, indexes, shader)
 
     @staticmethod
     def get_view_matrix(position: list[float], rotation: Rotation) -> list[list[float]]:
