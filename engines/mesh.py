@@ -1,9 +1,6 @@
 import moderngl
 import struct
 from engines.shader import Shader
-from scipy.spatial.transform import Rotation
-from engines.vector import Vector3
-import numpy as np
 
 class Mesh:
     def __init__(
@@ -76,8 +73,13 @@ class Mesh:
 
         # Set the model-view-projection matrix if the shader has an 'mvp' uniform
         if 'mvp' in self.shader.program:
-            mvp = np.array(self.transform.get_matrix()) @ np.array(view_projection)
-            matrix_data = (mvp[row][column] for column in range(4) for row in range(4))
+            from engines.utils import Utils
+            mvp = Utils.create_mvp(self.transform.position, 
+                                   self.transform.rotation,
+                                   self.transform.scale,
+                                   view_projection)
+            # Flatten the MVP matrix for writing to the shader uniform to a 16 length 1D array
+            matrix_data = [mvp[row][column] for row in range(4) for column in range(4)]
             uniform = self.shader.program['mvp']
             if isinstance(uniform, moderngl.Uniform):
                 uniform.write(struct.pack('16f', *matrix_data))
