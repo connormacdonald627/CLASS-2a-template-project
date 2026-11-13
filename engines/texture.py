@@ -2,9 +2,33 @@ from moderngl import Context, Texture as MGLTexture
 import struct
 from PIL import Image
 
+class AssignedUnits:
+    __instance: "AssignedUnits | None" = None
+    def __init__(self) -> None:
+        self.assigned = []
+
+    def assign(self) -> int:
+        unit = 0
+        while unit in self.assigned:
+            unit += 1
+        self.assigned.append(unit)
+        return unit
+    
+    def release(self, unit: int) -> None:
+        if unit in self.assigned:
+            self.assigned.remove(unit)
+
+    def __new__(cls) -> "AssignedUnits":
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls)
+            cls.__instance.assigned = []
+        return cls.__instance
+        
+
 class Texture: 
     def __init__(self, ctx: Context, data: bytes | None = None, path: str|None = "", fallback: str = "white", size: tuple[int, int] = (1, 1)) -> None:
         self.__ctx: Context = ctx
+        self.unit = AssignedUnits().assign()
         if data is None and not path:
             self.source = self.__generate_default_texture(fallback)
         elif path:
@@ -44,6 +68,7 @@ class Texture:
         return self.source
     
     def __del__(self) -> None:
+        AssignedUnits().release(self.unit)
         try:
             self.source.release()
         except Exception:

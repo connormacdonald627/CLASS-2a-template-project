@@ -29,17 +29,16 @@ class Shader:
         self,
         texture: Texture,
         sampler_name: str,
-        texture_unit: int = 0,
         sampling_filter: tuple[int, int] = (Context.NEAREST, Context.NEAREST),
         wrap_filter: tuple[bool, bool] = (True, True),
     ) -> None:
         """Bind a texture to a texture sampler"""
         try:
-            texture.source.use(location=texture_unit)
+            texture.source.use(location=texture.unit)
             texture.source.filter = sampling_filter
             texture.source.repeat_x = wrap_filter[0]
             texture.source.repeat_y = wrap_filter[1]
-            self.program[sampler_name] = texture_unit
+            self.program[sampler_name] = texture.unit
         except:
             pass
         
