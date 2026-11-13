@@ -76,7 +76,6 @@ class Mesh:
 
         # Set the model-view-projection matrix if the shader has an 'mvp' uniform
         if 'mvp' in self.shader.program:
-            from engines.utils import Utils
             mvp = np.array(self.transform.get_matrix()) @ np.array(view_projection)
             matrix_data = (mvp[row][column] for column in range(4) for row in range(4))
             uniform = self.shader.program['mvp']
