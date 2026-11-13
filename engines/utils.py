@@ -16,8 +16,6 @@ class Transform:
     def get_matrix(self) -> list[list[float]]:
         from engines.utils import Utils
         return Utils.create_mvp(self.position, self.rotation, self.scale, np.identity(4).tolist())
-    
-    
 
 class Utils:
     @staticmethod
