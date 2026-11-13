@@ -52,7 +52,7 @@ class Mesh:
             self.__ibo = ctx.buffer(struct.pack(f'{len(self.__indexes)}I', *self.__indexes))
 
         vertex_format = ' '.join(
-            f'{size * 4}x' if name == 'in_normal' and name not in self.shader_program else f'{size}f'
+            f'{size * 4}x' if name not in self.shader_program else f'{size}f'
             for name, size in self.attributes
         )
         names = tuple(
