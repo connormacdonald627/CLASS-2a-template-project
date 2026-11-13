@@ -58,14 +58,20 @@ class Texture:
         return self.__ctx.texture((1, 1), 4, data, alignment=1)
         
     def from_path(self, file_path: str) -> MGLTexture:
-        with Image.open(file_path) as image:
-            rgba: Image.Image = image.convert("RGBA").transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-            self.source = self.__ctx.texture(rgba.size, 4, rgba.tobytes(), alignment=1)
-            return self.source
+        try:
+            with Image.open(file_path) as image:
+                rgba: Image.Image = image.convert("RGBA").transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                self.source = self.__ctx.texture(rgba.size, 4, rgba.tobytes(), alignment=1)
+                return self.source
+        except Exception:
+            return self.__generate_default_texture("white")
 
     def from_data(self, data: bytes, size: tuple[int, int] = (1, 1)) -> MGLTexture:
-        self.source = self.__ctx.texture(size, 4, data, alignment=1)
-        return self.source
+        try:
+            self.source = self.__ctx.texture(size, 4, data, alignment=1)
+            return self.source
+        except Exception:
+            return self.__generate_default_texture("white")
     
     def __del__(self) -> None:
         AssignedUnits().release(self.unit)
