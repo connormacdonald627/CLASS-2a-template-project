@@ -61,7 +61,10 @@ class ModernGLEngine(BaseEngine):
     def render(self) -> None:
         self.ctx.enable(moderngl.DEPTH_TEST)
         self.window.clear(*self.clear_colour) # type: ignore
-        view_projection_matrix = (np.asarray(Utils.get_projection_matrix(math.radians(90.0), self.width / self.height)) @ np.asarray(Utils.get_view_matrix([0.0, 0.0, 0.0], Rotation.identity()))).tolist()
+        view_projection_matrix = (
+            np.asarray(Utils.get_view_matrix([0.0, 0.0, 0.0], Rotation.identity()))
+            @ np.asarray(Utils.get_projection_matrix(math.radians(90.0), self.width / self.height))
+        ).tolist()
         self.cube_mesh.draw(view_projection_matrix)
         self.window.swap_buffers()
 

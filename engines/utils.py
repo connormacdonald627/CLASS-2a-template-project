@@ -134,15 +134,21 @@ class Utils:
         """Create a view matrix based on position and rotation"""
         x, y, z = position
         rot_matrix = rotation.as_matrix().astype(np.float32)
-        inverted_rot = rot_matrix.T # Transpose to invert the rotation matrix for the view matrix
-        inverted_trans = -(inverted_rot @ np.array([x, y, z], dtype=np.float32))
+        inverted_trans = np.array(
+            [
+                -(rot_matrix[0, 0] * x + rot_matrix[1, 0] * y + rot_matrix[2, 0] * z),
+                -(rot_matrix[0, 1] * x + rot_matrix[1, 1] * y + rot_matrix[2, 1] * z),
+                -(rot_matrix[0, 2] * x + rot_matrix[1, 2] * y + rot_matrix[2, 2] * z),
+            ],
+            dtype=np.float32,
+        )
 
         view_matrix = np.array(
             [
-                [inverted_rot[0, 0], inverted_rot[0, 1], inverted_rot[0, 2], inverted_trans[0]],
-                [inverted_rot[1, 0], inverted_rot[1, 1], inverted_rot[1, 2], inverted_trans[1]],
-                [inverted_rot[2, 0], inverted_rot[2, 1], inverted_rot[2, 2], inverted_trans[2]],
-                [0.0, 0.0, 0.0, 1.0],
+                [rot_matrix[0, 0], rot_matrix[0, 1], rot_matrix[0, 2], 0.0],
+                [rot_matrix[1, 0], rot_matrix[1, 1], rot_matrix[1, 2], 0.0],
+                [rot_matrix[2, 0], rot_matrix[2, 1], rot_matrix[2, 2], 0.0],
+                [inverted_trans[0], inverted_trans[1], inverted_trans[2], 1.0],
             ]
         )
         return view_matrix.tolist()
@@ -161,23 +167,23 @@ class Utils:
             top: float = 1.0
             bottom: float = -1.0
             return [
-                [2.0 / (right - left), 0.0, 0.0, -(right + left) / (right - left)],
-                [0.0, 2.0 / (top - bottom), 0.0, -(top + bottom) / (top - bottom)],
-                [0.0, 0.0, -2.0 / (far - near), -(far + near) / (far - near)],
-                [0.0, 0.0, 0.0, 1.0],
+                [2.0 / (right - left), 0.0, 0.0, 0.0],
+                [0.0, 2.0 / (top - bottom), 0.0, 0.0],
+                [0.0, 0.0, -2.0 / (far - near), 0.0],
+                [
+                    -(right + left) / (right - left),
+                    -(top + bottom) / (top - bottom),
+                    -(far + near) / (far - near),
+                    1.0,
+                ],
             ]
         else:
             field_of_view: float = 1.0 / math.tan(fov / 2.0)
             return [
                 [field_of_view / aspect, 0.0, 0.0, 0.0],
                 [0.0, field_of_view, 0.0, 0.0],
-                [
-                    0.0,
-                    0.0,
-                    (far + near) / (near - far),
-                    (2 * far * near) / (near - far),
-                ],
-                [0.0, 0.0, -1.0, 0.0],
+                [0.0, 0.0, (far + near) / (near - far), -1.0],
+                [0.0, 0.0, (2 * far * near) / (near - far), 0.0],
             ]
 
     @staticmethod
@@ -199,13 +205,12 @@ class Utils:
 
         model_matrix = np.array(
             [
-                [rot_matrix[0, 0] * scale_x, rot_matrix[0, 1] * scale_y, rot_matrix[0, 2] * scale_z, x],
-                [rot_matrix[1, 0] * scale_x, rot_matrix[1, 1] * scale_y, rot_matrix[1, 2] * scale_z, y],
-                [rot_matrix[2, 0] * scale_x, rot_matrix[2, 1] * scale_y, rot_matrix[2, 2] * scale_z, z],
-                [0.0, 0.0, 0.0, 1.0],
+                [rot_matrix[0, 0] * scale_x, rot_matrix[1, 0] * scale_x, rot_matrix[2, 0] * scale_x, 0.0],
+                [rot_matrix[0, 1] * scale_y, rot_matrix[1, 1] * scale_y, rot_matrix[2, 1] * scale_y, 0.0],
+                [rot_matrix[0, 2] * scale_z, rot_matrix[1, 2] * scale_z, rot_matrix[2, 2] * scale_z, 0.0],
+                [x, y, z, 1.0],
             ],
             dtype=np.float32,
         )
 
-        # Construct the MVP matrix from the model and view-projection matrices.
-        return (np.asarray(view_projection, dtype=np.float32) @ model_matrix).tolist()
+        return (model_matrix @ np.asarray(view_projection, dtype=np.float32)).tolist()

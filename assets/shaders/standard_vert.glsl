@@ -14,7 +14,7 @@ out vec2 uv;
 out vec4 frag_colour;
 
 void main() {
-    gl_Position = mvp * vec4(in_position, 1.0);
+    gl_Position = vec4(in_position, 1.0) * mvp;
     vertex_colour = in_colour;
     frag_colour = colour;
     normal = in_normal;
