@@ -52,6 +52,7 @@ class Mesh:
         if self.__indexes is not None:
             self.__ibo = ctx.buffer(struct.pack(f'{len(self.__indexes)}I', *self.__indexes))
 
+        # Skip attributes that are not in the shader program
         vertex_format = ' '.join(
             f'{size * 4}x' if name not in self.shader.program else f'{size}f'
             for name, size in self.attributes
@@ -71,6 +72,7 @@ class Mesh:
         if self.__vao is None:
             return
 
+        # Set the model-view-projection matrix if the shader has an 'mvp' uniform
         if 'mvp' in self.shader.program:
             from engines.utils import Utils
             mvp = Utils.create_mvp(self.position, self.rotation, self.scale, view_projection)
