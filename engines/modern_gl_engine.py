@@ -9,7 +9,7 @@ from moderngl_window.context.base.window import BaseWindow
 from engines.base_engine import BaseEngine
 from engines.mesh import Mesh
 from engines.utils import Utils
-from engines.shader import Shader
+from engines.vector import Vector3
 from engines.texture import Texture
 
 
@@ -46,7 +46,7 @@ class ModernGLEngine(BaseEngine):
         self.default_texture = Texture(self.ctx, fallback="checkerboard")
         shader.set_texture(self.default_texture, "maintex")
         self.cube_mesh: Mesh = Utils.create_cube_mesh(shader)
-        self.cube_mesh.position = [0.0, 0.0, -2.5]
+        self.cube_mesh.transform.position = Vector3(0.0, 0.0, -2.5)
         self.lerped_features["amplitude"] = 1.0
 
     def update(self, audio_features: dict[str, float|str]) -> None:
@@ -56,9 +56,12 @@ class ModernGLEngine(BaseEngine):
         amplitude: float = (float(raw_amplitude) * 2.0) + 0.5
 
         self.lerped_features["amplitude"] = Utils.lerp(self.lerped_features["amplitude"], amplitude, 15 * delta_time)
-        self.cube_mesh.scale = [self.lerped_features["amplitude"], self.lerped_features["amplitude"], self.lerped_features["amplitude"]]
+        amplitude_scale = self.lerped_features["amplitude"]
+        self.cube_mesh.transform.scale = Vector3(amplitude_scale, amplitude_scale, amplitude_scale)
 
-        self.cube_mesh.rotation = Rotation.from_euler("xyz", [self.time, self.time, self.time])
+        self.cube_mesh.transform.rotation = Rotation.from_euler(
+            "xyz", [self.time, self.time, self.time]
+        )
 
         print(f"FPS: {1.0 / delta_time if delta_time > 0 else 0.0}")
 
@@ -66,7 +69,9 @@ class ModernGLEngine(BaseEngine):
         self.ctx.enable(moderngl.DEPTH_TEST)
         self.window.clear(*self.clear_colour) # type: ignore
         view_projection_matrix = (
-            np.asarray(Utils.get_view_matrix([0.0, 0.0, 0.0], Rotation.identity()))
+            np.asarray(
+                Utils.get_view_matrix(Vector3(0.0, 0.0, 0.0), Rotation.identity())
+            )
             @ np.asarray(Utils.get_projection_matrix(math.radians(90.0), self.width / self.height))
         ).tolist()
         self.cube_mesh.draw(view_projection_matrix)

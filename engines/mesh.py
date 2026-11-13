@@ -2,7 +2,9 @@ import moderngl
 import struct
 from engines.shader import Shader
 from scipy.spatial.transform import Rotation
-    
+from engines.vector import Vector3
+import numpy as np
+
 class Mesh:
     def __init__(
         self,
@@ -16,6 +18,8 @@ class Mesh:
             ('in_normal', 3),
         ],
     ) -> None:
+        from engines.utils import Transform
+
         self.attributes: list[tuple[str, int]] = attributes.copy()
         self.__vbo: moderngl.Buffer | None = None
         self.__ibo: moderngl.Buffer | None = None
@@ -23,9 +27,7 @@ class Mesh:
         self.__indexes: list[int] | None = indexes
         self.__vertex_data = vertex_data
         self.shader: Shader | None = shader
-        self.position: list[float] = [0.0, 0.0, 0.0]
-        self.rotation: Rotation = Rotation.identity()
-        self.scale: list[float] = [1.0, 1.0, 1.0]
+        self.transform: Transform = Transform()
         self.__validate_attributes()
 
     def __validate_attributes(self) -> None:
@@ -75,7 +77,7 @@ class Mesh:
         # Set the model-view-projection matrix if the shader has an 'mvp' uniform
         if 'mvp' in self.shader.program:
             from engines.utils import Utils
-            mvp = Utils.create_mvp(self.position, self.rotation, self.scale, view_projection)
+            mvp = np.array(self.transform.get_matrix()) @ np.array(view_projection)
             matrix_data = (mvp[row][column] for column in range(4) for row in range(4))
             uniform = self.shader.program['mvp']
             if isinstance(uniform, moderngl.Uniform):

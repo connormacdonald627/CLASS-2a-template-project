@@ -10,6 +10,8 @@ contract while filling in engine-specific behaviour.
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from engines.vector import Vector3
+
 
 class BaseEngine(ABC):
     def __init__(self, width: int, height: int, title: str, target_fps: int = 60) -> None:
@@ -21,7 +23,7 @@ class BaseEngine(ABC):
         self.time_scale: float = 1.0
         self.vsync: bool = False
         self.resizable: bool = True
-        self.clear_colour: tuple[float, float, float] = (0.1, 0.1, 0.1)
+        self.clear_colour: Vector3 = Vector3(0.1, 0.1, 0.1)
         self.time: float = 0.0
 
     @abstractmethod
