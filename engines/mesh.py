@@ -79,7 +79,7 @@ class Mesh:
                                    self.transform.scale,
                                    view_projection)
             # Flatten the MVP matrix for writing to the shader uniform to a 16 length 1D array
-            matrix_data = [mvp[row][column] for row in range(4) for column in range(4)]
+            matrix_data = [mvp[column][row] for row in range(4) for column in range(4)]
             uniform = self.shader.program['mvp']
             if isinstance(uniform, moderngl.Uniform):
                 uniform.write(struct.pack('16f', *matrix_data))
