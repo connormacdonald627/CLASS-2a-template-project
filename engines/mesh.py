@@ -78,11 +78,14 @@ class Mesh:
                                    self.transform.rotation,
                                    self.transform.scale,
                                    view_projection)
+            
             # Flatten the MVP matrix for writing to the shader uniform to a 16 length 1D array
-            matrix_data = [mvp[column][row] for row in range(4) for column in range(4)]
-            uniform = self.shader.program['mvp']
-            if isinstance(uniform, moderngl.Uniform):
-                uniform.write(struct.pack('16f', *matrix_data))
+            # And transpose the matrix to match the column-major order expected by OpenGL
+            matrix_data: list[float] = [mvp[column][row] for row in range(4) for column in range(4)]
+            try:
+                self.shader.program['mvp'] = matrix_data
+            except Exception:
+                pass
         self.__vao.render(moderngl.TRIANGLES)
         
     def __del__(self) -> None:
