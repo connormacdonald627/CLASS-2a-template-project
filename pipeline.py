@@ -299,13 +299,13 @@ class AudioPipeline:
         else:
             step_seconds: float = step / self.sample_rate
             self.__time_since_advance += delta_time
-            steps: int = 0
-            while self.__time_since_advance >= step_seconds:
-                self.__time_since_advance -= step_seconds
-                steps += 1
-            if steps > 0:
-                if self.play_audio:
-                    self.__play_window_audio(step * steps)
-                self.position += step * steps
+            if self.__time_since_advance >= step_seconds:
+                # Progress by steps since our last update, and calculate number of steps to advances
+                steps: int = int(self.__time_since_advance // step_seconds)
+                self.__time_since_advance -= steps * step_seconds
+                if steps > 0:
+                    if self.play_audio:
+                        self.__play_window_audio(step * steps)
+                    self.position += step * steps
 
         return current_data
