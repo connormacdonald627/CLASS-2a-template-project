@@ -57,6 +57,7 @@ class BaseEngine(ABC):
         returns False, then teardown. Do not override this method — every
         engine tier shares this exact loop.
         """
+        
         frame_duration = 0.0
         if self.target_fps <= 0:
             frame_duration = 0.0

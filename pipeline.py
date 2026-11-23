@@ -6,13 +6,7 @@ import typing
 
 
 class AudioPipeline:
-    """Loads an audio file and extracts features from it, frame by frame.
-
-    Both load() and get_features() are stubs you must implement yourself —
-    that's intentional, not an oversight. This unit is about the whole
-    pipeline (data source -> feature extraction -> real-time rendering), not
-    just feature extraction handed to you pre-solved.
-    """
+    """Loads an audio file and extracts features from it, frame by frame."""
 
     def __init__(self, file_path: str, sample_rate: int = 44100) -> None:
         self.file_path: str = file_path
