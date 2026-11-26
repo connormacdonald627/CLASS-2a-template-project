@@ -308,7 +308,7 @@ class AudioPipeline:
                 self.__play_window_audio(samples_to_advance, time_scale)
 
             self.position += samples_to_advance
-                self.__play_window_audio(step, time_scale)
+            self.__play_window_audio(step, time_scale)
             self.position += step
         else:
             step_seconds: float = step / self.sample_rate
