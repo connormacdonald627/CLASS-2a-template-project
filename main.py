@@ -31,10 +31,10 @@ def run_full_app() -> None:
         pipeline.load()
     except NotImplementedError:
         print("Audio file format not supported. Skipping audio pipeline.")
-        engine.run(feature_source=lambda delta_time: {})
+        engine.run(feature_source=lambda delta_time, time_scale: {})
         return
 
-    engine.run(feature_source=lambda delta_time: pipeline.get_features(delta_time))
+    engine.run(feature_source=lambda delta_time, time_scale: pipeline.get_features(delta_time, time_scale))
 
 
 

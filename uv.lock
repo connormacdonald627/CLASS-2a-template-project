@@ -186,12 +186,12 @@ requires-dist = [
     { name = "librosa" },
     { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "moderngl-window" },
-    { name = "numpy" },
+    { name = "numpy", specifier = ">=2.2.6" },
     { name = "pillow" },
     { name = "pooch", specifier = ">=1.9.0" },
     { name = "pygame" },
     { name = "pyglet" },
-    { name = "scipy" },
+    { name = "scipy", specifier = ">=1.15.3" },
 ]
 
 [[package]]

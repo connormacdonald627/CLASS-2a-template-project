@@ -221,9 +221,10 @@ class AudioPipeline:
             numpy.column_stack((pcm_samples, pcm_samples))
         )
 
-    def __play_window_audio(self, step: int) -> None:
+    def __play_window_audio(self, step: int, speed: float) -> None:
         """Play the audio corresponding to the current window step."""
         
+        sample_rate: int = self.sample_rate
         stereo_buffer = self.track_data["stereo_buffer"]
         if self.__signal is None or stereo_buffer is None or step <= 0:
             return
@@ -231,6 +232,10 @@ class AudioPipeline:
         chunk_end = min(self.position + step, len(stereo_buffer))
         if chunk_end > self.position:
             chunk = stereo_buffer[self.position:chunk_end]
+
+            if speed != 1.0:
+                chunk = chunk[::max(1, int(speed))]
+
             self.__pending_audio = (
                 chunk if self.__pending_audio is None
                 else numpy.concatenate((self.__pending_audio, chunk))
@@ -239,12 +244,12 @@ class AudioPipeline:
         if self.__pending_audio is None:
             return
 
-        if len(self.__pending_audio) > self.sample_rate:
-            self.__pending_audio = self.__pending_audio[-self.sample_rate:]
+        if len(self.__pending_audio) > sample_rate:
+            self.__pending_audio = self.__pending_audio[-sample_rate:]
 
         channel: pygame.mixer.Channel = pygame.mixer.Channel(0)
         if channel.get_busy() and channel.get_queue() is not None:
-            return 
+            return
 
         sound: pygame.mixer.Sound = pygame.sndarray.make_sound(numpy.ascontiguousarray(self.__pending_audio))
         if channel.get_busy():
@@ -252,8 +257,10 @@ class AudioPipeline:
         else:
             channel.play(sound)
         self.__pending_audio = None
+
+
         
-    def get_features(self, delta_time: float = 0.0) -> dict[str, float | str]:
+    def get_features(self, delta_time: float = 0.0, time_scale: float = 1.0) -> dict[str, float | str]:
         """Extract numerical features (amplitude at minimum) from the current
         window of the loaded signal, advance the pipeline's internal read
         position accordingly, and return them as a dict[str, float|str].
@@ -291,21 +298,21 @@ class AudioPipeline:
             )
 
         step: int = min(max(self.hop_size, 0), self.window_size)
-
+        
         if delta_time <= 0.0:
+            return current_data
+
+        self.__time_since_advance += delta_time
+        step_seconds: float = step / self.sample_rate
+        steps: int = int(self.__time_since_advance / step_seconds)
+
+        if steps > 0:
+            self.__time_since_advance -= steps * step_seconds
+            samples_to_advance: int = step * steps
+
             if self.play_audio:
-                self.__play_window_audio(step)
-            self.position += step
-        else:
-            step_seconds: float = step / self.sample_rate
-            self.__time_since_advance += delta_time
-            steps: int = 0
-            while self.__time_since_advance >= step_seconds:
-                self.__time_since_advance -= step_seconds
-                steps += 1
-            if steps > 0:
-                if self.play_audio:
-                    self.__play_window_audio(step * steps)
-                self.position += step * steps
+                self.__play_window_audio(samples_to_advance, time_scale)
+
+            self.position += samples_to_advance
 
         return current_data

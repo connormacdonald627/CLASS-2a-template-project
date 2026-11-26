@@ -1,59 +1,115 @@
+from typing import Any
 import numpy as np
-
+    
 # Vector class so we dont have to manually handle numpy vectors
 class Vector:
-    # Allow iteration over our vector values from public params
-    def __iter__(self):
+
+    # Allow iteration over vector values
+    def __iter__(self) -> Any:
         return iter(self.__dict__.values())
 
-    def __get_array(self, other):
+    def __as_array(self) -> np.ndarray:
+        return np.asarray(tuple(self))
+
+    def __get_array(self, other) -> Any:
         if isinstance(other, Vector):
-            return np.array(other)
+            return other.__as_array()
         return other
 
+    def __gt__(self, other) -> bool:
+        return bool(np.all(self.__as_array() > self.__get_array(other)))
+
+    def __ge__(self, other) -> bool:
+        return bool(np.all(self.__as_array() >= self.__get_array(other)))
+
+    def __le__(self, other) -> bool:
+        return bool(np.all(self.__as_array() <= self.__get_array(other)))
+
+    def __lt__(self, other) -> bool:
+        return bool(np.all(self.__as_array() < self.__get_array(other)))
+    
+    def __eq__(self, other) -> bool:
+        return bool(np.allclose(self.__as_array(), self.__get_array(other)))
+
     def __add__(self, other):
-        return self.__class__(*(np.array(self) + self.__get_array(other)))
+        return self.__class__(*(
+            self.__as_array() + self.__get_array(other)
+        ))
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __sub__(self, other):
-        return self.__class__(*(np.array(self) - self.__get_array(other)))
+        return self.__class__(*(
+            self.__as_array() - self.__get_array(other)
+        ))
 
     def __rsub__(self, other):
-        return self.__class__(*(self.__get_array(other) - np.array(self)))
+        return self.__class__(*(
+            self.__get_array(other) - self.__as_array()
+        ))
 
     def __mul__(self, other):
-        return self.__class__(*(np.array(self) * self.__get_array(other)))
+        return self.__class__(*(
+            self.__as_array() * self.__get_array(other)
+        ))
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        return self.__class__(*(np.array(self) / self.__get_array(other)))
+        return self.__class__(*(
+            self.__as_array() / self.__get_array(other)
+        ))
 
     def __rtruediv__(self, other):
-        return self.__class__(*(self.__get_array(other) / np.array(self)))
+        return self.__class__(*(
+            self.__get_array(other) / self.__as_array()
+        ))
 
     def __neg__(self):
-        return self.__class__(*(-np.array(self)))
+        return self.__class__(*(
+            -self.__as_array()
+        ))
 
 
 class Vector4(Vector):
-    def __init__(self, x: float, y: float, z: float, w: float) -> None:
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
+    def __init__(
+        self, x: float, y: float | None = None, z: float | None = None, w: float | None = None
+    ) -> None:
+        if y is None and z is None and w is None:
+            self.x = x
+            self.y = x
+            self.z = x
+            self.w = x
+        else:
+            self.x = x
+            self.y = y if y is not None else 0.0
+            self.z = z if z is not None else 0.0
+            self.w = w if w is not None else 0.0
 
 
 class Vector3(Vector):
-    def __init__(self, x: float, y: float, z: float) -> None:
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(
+        self, x: float, y: float | None = None, z: float | None = None
+    ) -> None:
+        if y is None and z is None:
+            self.x = x
+            self.y = x
+            self.z = x
+        else:
+            self.x = x
+            self.y = y if y is not None else 0.0
+            self.z = z if z is not None else 0.0
+
 
 class Vector2(Vector):
-    def __init__(self, x: float, y: float) -> None:
-        self.x = x
-        self.y = y
+    def __init__(
+        self, x: float, y: float | None = None
+    ) -> None:
+        if y is None:
+            self.x = x
+            self.y = x
+        else:
+            self.x = x
+            self.y = y

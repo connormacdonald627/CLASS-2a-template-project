@@ -15,7 +15,7 @@ class Transform:
         
     def get_matrix(self) -> list[list[float]]:
         from engines.utils import Utils
-        return Utils.create_mvp(self.position, self.rotation, self.scale, np.identity(4).tolist())
+        return Utils.create_model_matrix(self.position, self.rotation, self.scale)
 
 class Utils:
     @staticmethod
@@ -35,74 +35,6 @@ class Utils:
         return Shader(ctx,
             vertex_shader=vertex_shader_source, fragment_shader=fragment_shader_source
         )
-
-    @staticmethod
-    def create_cube_mesh(shader: Shader) -> Mesh:
-        
-        """Creates a cube mesh"""
-
-        vertices: list[Vector3] = [
-            Vector3(-1, -1, -1),
-            Vector3(-1, 1, -1),
-            Vector3(1, 1, -1),
-            Vector3(1, -1, -1),
-            Vector3(-1, -1, 1),
-            Vector3(1, -1, 1),
-            Vector3(1, 1, 1),
-            Vector3(-1, 1, 1),
-            Vector3(-1, 1, -1),
-            Vector3(-1, 1, 1),
-            Vector3(1, 1, 1),
-            Vector3(1, 1, -1),
-            Vector3(-1, -1, -1),
-            Vector3(1, -1, -1),
-            Vector3(1, -1, 1),
-            Vector3(-1, -1, 1),
-            Vector3(1, -1, -1),
-            Vector3(1, 1, -1),
-            Vector3(1, 1, 1),
-            Vector3(1, -1, 1),
-            Vector3(-1, -1, -1),
-            Vector3(-1, -1, 1),
-            Vector3(-1, 1, 1),
-            Vector3(-1, 1, -1),
-        ]
-
-        uvs: list[Vector2] = [
-            Vector2(0.0, 0.0),
-            Vector2(1.0, 0.0),
-            Vector2(1.0, 1.0),
-            Vector2(0.0, 1.0),
-        ] * 6
-        normals = (
-            [Vector3(0.0, 0.0, -1.0)] * 4
-            + [Vector3(0.0, 0.0, 1.0)] * 4
-            + [Vector3(0.0, 1.0, 0.0)] * 4
-            + [Vector3(0.0, -1.0, 0.0)] * 4
-            + [Vector3(1.0, 0.0, 0.0)] * 4
-            + [Vector3(-1.0, 0.0, 0.0)] * 4
-        )
-
-        indexes: list[int] = [
-            0, 1, 2, 0, 2, 3,
-            4, 5, 6, 4, 6, 7,
-            8, 9, 10, 8, 10, 11,
-            12, 13, 14, 12, 14, 15,
-            16, 17, 18, 16, 18, 19,
-            20, 21, 22, 20, 22, 23,
-        ]
-
-        colour = Vector3(1.0, 1.0, 1.0)
-        vertex_data = [
-            (
-                *vertices[i],
-                *colour,
-                *uvs[i],
-                *normals[i],
-            )
-            for i in range(len(vertices))
-        ]
-        return Mesh(vertex_data, indexes, shader)
 
     @staticmethod
     def get_view_matrix(position: Vector3, rotation: Rotation) -> list[list[float]]:
@@ -163,13 +95,12 @@ class Utils:
         return start + (end - start) * t
 
     @staticmethod
-    def create_mvp(
+    def create_model_matrix(
         position: Vector3,
         rotation: Rotation,
-        scale: Vector3,
-        view_projection: list[list[float]],
+        scale: Vector3
     ) -> list[list[float]]:
-        """Create a model-view-projection matrix based on position, rotation, scale, and view projection"""
+        """Create a model matrix based on position, rotation, and scale"""
 
         x, y, z = position
         rot_matrix = rotation.as_matrix().astype(np.float32)
@@ -184,4 +115,9 @@ class Utils:
             ],
             dtype=np.float32,
         )
-        return (model_matrix @ np.asarray(view_projection, dtype=np.float32)).tolist()
+        return model_matrix.tolist()
+
+    @staticmethod
+    def flatten_matrix(matrix: np.ndarray | list[list[float]]) -> np.ndarray:
+        """Flatten a 4x4 matrix to a 1D list in column-major order"""
+        return np.asarray(matrix, dtype=np.float32).T.flatten()

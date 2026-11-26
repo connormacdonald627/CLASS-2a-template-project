@@ -23,7 +23,7 @@ class BaseEngine(ABC):
         self.time_scale: float = 1.0
         self.vsync: bool = False
         self.resizable: bool = True
-        self.clear_colour: Vector3 = Vector3(0.1, 0.1, 0.1)
+        self.clear_colour: Vector3 = Vector3(0.0, 0.0, 0.0)
         self.time: float = 0.0
 
     @abstractmethod
@@ -52,7 +52,7 @@ class BaseEngine(ABC):
     def teardown(self) -> None:
         """Release engine resources on exit (close window/context)."""
 
-    def run(self, feature_source: Callable[[float], dict[str, float|str]]) -> None:
+    def run(self, feature_source: Callable[[float, float], dict[str, float|str]]) -> None:
         """Owns the engine lifecycle: setup once, loop until handle_events()
         returns False, then teardown. Do not override this method — every
         engine tier shares this exact loop.
@@ -78,7 +78,7 @@ class BaseEngine(ABC):
                 if not running:
                     break
 
-                audio_features = feature_source(self.delta_time)
+                audio_features = feature_source(self.delta_time, self.time_scale)
                 self.update(audio_features)
                 self.render()
 

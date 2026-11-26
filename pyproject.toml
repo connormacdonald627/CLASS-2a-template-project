@@ -5,16 +5,16 @@ description = "CLASS-2a template project: a real-time, audio-driven interactive 
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
-    "numpy",
     "librosa",
     "pygame",
     "pyglet",
     "moderngl-window",
     "pillow",
-    "scipy",
     "pooch>=1.9.0",
     "appnope>=1.0.0",
     "matplotlib>=3.10.9",
+    "numpy>=2.2.6",
+    "scipy>=1.15.3",
 ]
 
 [tool.uv]

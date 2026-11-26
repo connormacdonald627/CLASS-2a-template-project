@@ -3,9 +3,15 @@ out vec4 frag_out;
 in vec3 vertex_colour;
 in vec4 frag_colour;
 in vec2 uv;
+in vec3 world_normal;
+in vec3 world_position;
 uniform sampler2D maintex;
+
 
 void main() {
     frag_out = vec4(vertex_colour, 1.0) * frag_colour;
     frag_out *= texture(maintex, uv);
+    float dist = 1.0 / distance(world_position, vec3(0.0));
+    vec3 colour = mix(vec3(1.0, 1.0, 1.0), vertex_colour, 0.5);
+    frag_out *= vec4(colour, 1.0);
 }
