@@ -6,13 +6,7 @@ import typing
 
 
 class AudioPipeline:
-    """Loads an audio file and extracts features from it, frame by frame.
-
-    Both load() and get_features() are stubs you must implement yourself —
-    that's intentional, not an oversight. This unit is about the whole
-    pipeline (data source -> feature extraction -> real-time rendering), not
-    just feature extraction handed to you pre-solved.
-    """
+    """Loads an audio file and extracts features from it, frame by frame."""
 
     def __init__(self, file_path: str, sample_rate: int = 44100) -> None:
         self.file_path: str = file_path
@@ -314,5 +308,18 @@ class AudioPipeline:
                 self.__play_window_audio(samples_to_advance, time_scale)
 
             self.position += samples_to_advance
+                self.__play_window_audio(step, time_scale)
+            self.position += step
+        else:
+            step_seconds: float = step / self.sample_rate
+            self.__time_since_advance += delta_time
+            if self.__time_since_advance >= step_seconds:
+                # Progress by steps since our last update, and calculate number of steps to advance
+                steps: int = int(self.__time_since_advance // step_seconds)
+                self.__time_since_advance -= steps * step_seconds
+                if steps > 0:
+                    if self.play_audio:
+                        self.__play_window_audio(step * steps, time_scale)
+                    self.position += step * steps
 
         return current_data
