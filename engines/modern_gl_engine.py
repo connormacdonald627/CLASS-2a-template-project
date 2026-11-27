@@ -43,7 +43,7 @@ class ModernGLEngine(BaseEngine):
         self._should_close: bool = False
         self.window.key_event_func = self._on_key_event
         self.audio_features: dict[str, float | str] = {}
-        self.lerped_features: dict[str, float] = {}
+        self.lerped_features: dict[str, list[float]] = {}
         self.galaxy: Galaxy = Galaxy()
 
     def _on_key_event(self, key: int, action: int, modifiers: int) -> None:
@@ -73,7 +73,7 @@ class ModernGLEngine(BaseEngine):
         angle += random.gauss(0, self.galaxy.distribution.x) + random.gauss(0, self.galaxy.distribution.y)
         return angle + arm * 2.0 * math.pi / self.galaxy.arms
 
-    def create_particles(self, particle_count: int = 1000) -> list[Galaxy.GalaxyParticle]:
+    def create_particles(self, particle_count: int = 500) -> list[Galaxy.GalaxyParticle]:
         particles: list[Galaxy.GalaxyParticle] = [
             Galaxy.GalaxyParticle(Vector3(0, 0, 0), Vector3(0, 0, 0), 0)
             for _ in range(particle_count)
@@ -96,21 +96,45 @@ class ModernGLEngine(BaseEngine):
             particles[i] = Galaxy.GalaxyParticle(
                 position,
                 Vector3(0.0),
-                0.005 * self.galaxy.radius,
-                Vector3(1.0, 1.0, 1.0)
+                0.005 * self.galaxy.radius
             )
 
         return particles
 
-    def update_particles(self, delta_time: float, audio_features: dict[str, float | str]) -> None:
-        angular_speed: float = self.galaxy.speed * delta_time
+    def weighted_average(self, values: list[float], weights: list[float]) -> float:
+        total_weight: float = sum(weights)
+        if total_weight == 0:
+            return 0.0
+        return sum(value * weight for value, weight in zip(values, weights)) / total_weight
 
+    def update_particles(self, delta_time: float, audio_features: dict[str, float | str]) -> None:
+
+        smoothing: float = 30
+        self.lerped_features["bass"] = Utils.lerp(self.lerped_features.get("bass", 0.0), audio_features.get("bass", 0.0), smoothing * delta_time)
+        self.lerped_features["mid"] = Utils.lerp(self.lerped_features.get("mid", 0.0), audio_features.get("mid", 0.0), smoothing * delta_time)
+        self.lerped_features["treble"] = Utils.lerp(self.lerped_features.get("treble", 0.0), audio_features.get("treble", 0.0), smoothing * delta_time)
+        
+        bass: float = self.lerped_features["bass"]
+        mid: float = self.lerped_features["mid"]
+        treble: float = self.lerped_features["treble"]
+
+        base_galaxy_colour: Vector3 = Vector3(0.0, 0.0, 0.0)
+
+        bass_colour: Vector3 = Vector3(0.0, 1.0, 1.0) * bass
+        bass_colour = Vector3.lerp(base_galaxy_colour, bass_colour, Vector3(bass))
+        mid_colour: Vector3 = Vector3(0.5, 0.0, 1.0) * mid
+        mid_colour = Vector3.lerp(base_galaxy_colour, mid_colour, Vector3(mid))
+        treble_colour: Vector3 = Vector3(1.0, 0.0, 1.0) * treble
+        treble_colour = Vector3.lerp(base_galaxy_colour, treble_colour, Vector3(treble))
+        
+        angular_speed: float = self.galaxy.speed * delta_time
+    
         for i, particle in enumerate(self.galaxy_particles):
             radius: float = (i / len(self.galaxy_particles)) * self.galaxy.radius
             angle: float = math.atan2(particle.position.x, particle.position.z)
             
             radial_factor: float = radius / self.galaxy.radius
-            fixed_particle: bool = i % 2 < int(radial_factor * 2)
+            fixed_particle: bool = i % 2 < int(radial_factor * 4)
             if not fixed_particle:
                 angle += angular_speed * (len(self.galaxy_particles) / (i + 1))
             else:
@@ -118,6 +142,19 @@ class ModernGLEngine(BaseEngine):
 
             particle.position.x = math.sin(angle) * radius
             particle.position.z = math.cos(angle) * radius
+
+            previous_arm: bool = (i - 1) % self.galaxy.arms == 0
+            current_arm: bool = i % self.galaxy.arms == 0
+            next_arm: bool = (i + 1) % self.galaxy.arms == 0
+
+            particle.colour = bass_colour * int(previous_arm) + mid_colour * int(current_arm) + treble_colour * int(next_arm)
+
+            # Center blend
+            distance: float = 1.0 / (Vector3.dot(particle.position, particle.position) / self.galaxy.radius)
+            particle.colour.x = Utils.lerp(particle.colour.x, 1.0, distance)
+            particle.colour.y = Utils.lerp(particle.colour.y, 1.0, distance)
+            particle.colour.z = Utils.lerp(particle.colour.z, 1.0, distance)
+
 
     def render_particles(
         self,

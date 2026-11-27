@@ -16,7 +16,7 @@ import time
 # how/why this is a one-time project decision, not a runtime toggle.
 ENGINE: type[BaseEngine] = ModernGLEngine
 
-AUDIO_FILE: str = "./audio/Rain_World_-_Threat_-_Sunken_Pier.mp3"
+AUDIO_FILE: str = "./audio/track1.mp3"
 WINDOW_WIDTH: int = 1280
 WINDOW_HEIGHT: int = 720
 WINDOW_TITLE: str = "CLASS-2a Project"

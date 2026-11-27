@@ -73,7 +73,7 @@ class Mesh:
         if self.__instance_buffer is not None:
             instance_format, instance_names = self.__format_attributes(self.instance_attributes)
             if instance_names:
-                content.append((self.__instance_buffer, f'{instance_format} /i', *instance_names))
+                content.append((self.__instance_buffer, f'{instance_format}/i', *instance_names))
         self.__vao = self.shader.ctx.vertex_array(self.shader.program, content, index_buffer=self.__ibo)
         
     def __setup_vertex_attributes(self) -> None:
@@ -122,6 +122,7 @@ class Mesh:
         if self.__vao is None or self.__vbo is None:
             return
 
+        self.shader.program['is_instanced'] = 0
         self.__set_matrices(view, projection)
         self.__vao.render(moderngl.TRIANGLES)
         
@@ -139,6 +140,7 @@ class Mesh:
         if self.__vao is None or self.__vbo is None:
             return
 
+        self.shader.program['is_instanced'] = 1
         self.__set_matrices(view, projection)
         self.__vao.render(moderngl.TRIANGLES, instances=instance_count)
             

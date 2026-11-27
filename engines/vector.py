@@ -8,6 +8,22 @@ class Vector:
     def __iter__(self) -> Any:
         return iter(self.__dict__.values())
 
+    def length(self) -> float:
+        return float(np.linalg.norm(self.__as_array()))
+
+    def dot(self, other) -> float:
+        return float(np.dot(self.__as_array(), self.__get_array(other)))
+
+    def cross(self, other):
+        return self.__class__(*(
+            np.cross(self.__as_array(), self.__get_array(other))
+        ))
+    
+    def lerp(self, other, t):
+        return self.__class__(*(
+            (1 - self.__get_array(t)) * self.__as_array() + self.__get_array(t) * self.__get_array(other)
+        ))
+
     def __as_array(self) -> np.ndarray:
         return np.asarray(tuple(self))
 

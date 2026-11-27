@@ -9,6 +9,7 @@ in vec3 in_normal;
 
 uniform vec4 colour = vec4(1.0, 1.0, 1.0, 1.0);
 uniform vec4 tiling_offset = vec4(1.0, 1.0, 0.0, 0.0);
+uniform int is_instanced;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -21,7 +22,7 @@ out vec2 uv;
 out vec4 frag_colour;
 
 void main() {
-    bool is_instance = gl_InstanceID > 0;
+    bool is_instance = is_instanced > 0;
     mat4 current_model = is_instance ? instance_model : model;
     gl_Position = vec4(in_position, 1.0) * current_model * view * projection;
 
